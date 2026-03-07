@@ -49,16 +49,30 @@ kotlin {
             implementation(libs.serialization.json)
         }
 
+        commonTest.dependencies {
+            implementation(kotlin("test"))
+            implementation(libs.coroutines.test)
+            implementation(libs.serialization.json)
+        }
+
         // for test (kotlin/jvm)
         jvmTest.dependencies {
-            implementation(kotlin("test"))
             implementation(libs.kotest.junit5)
             implementation(libs.kotest.assertions)
-            implementation(libs.coroutines.test)
         }
     }
 }
 
 tasks.named<Test>("jvmTest") {
     useJUnitPlatform()
+}
+
+val secretsFile = rootProject.file("secrets.json")
+if (secretsFile.exists()) {
+    tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest>().configureEach {
+        environment("SECRETS_FILE", secretsFile.absolutePath)
+    }
+    tasks.withType<Test>().configureEach {
+        environment("SECRETS_FILE", secretsFile.absolutePath)
+    }
 }

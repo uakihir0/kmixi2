@@ -3,15 +3,28 @@
 # kmixi2
 
 ![badge][badge-jvm]
+![badge][badge-ios]
+![badge][badge-mac]
 
 **This library is a [mixi2](https://mixi.social/) client library compatible
 with [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html).**
 Unlike other PlanetLink SDKs, mixi2 uses gRPC (Protocol Buffers) instead of REST/JSON.
-The JVM platform is fully implemented using [grpc-kotlin]; JS and Native platforms are currently stubs.
+All platforms (JVM, iOS, macOS) are fully supported via [GRPC-Kotlin-Multiplatform][kmpgrpc] v1.5.0.
 Authentication (OAuth2) uses [khttpclient] for the HTTP POST token endpoint.
 
 Proto definitions: https://github.com/mixigroup/mixi2-api
 Go SDK reference: https://github.com/mixigroup/mixi2-application-sdk-go
+
+### Platform Support
+
+| Platform | gRPC API | Auth (HTTP) | Streaming | Notes |
+|----------|----------|-------------|-----------|-------|
+| JVM | OK | OK | OK | OkHttp transport |
+| iOS | OK | OK | OK | gRPC C-core transport |
+| macOS | OK | OK | OK | gRPC C-core transport |
+| JS | - | OK | - | Server does not support grpc-web |
+
+> JS platform: The mixi2 server does not support the grpc-web protocol required for browser/Node.js gRPC calls. Auth (HTTP POST) works, but gRPC API calls are not available.
 
 ## Usage
 
@@ -162,7 +175,7 @@ Note: The stream module connects to `application-stream.mixi.social` for server-
 ## Build
 
 ```bash
-./gradlew :proto:build    # Generate proto stubs
+./gradlew :grpc:build     # Generate proto stubs (all platforms)
 ./gradlew jvmJar          # Build all JVM artifacts
 ./gradlew :core:jvmTest   # Run core tests
 ./gradlew :stream:jvmTest # Run stream tests
@@ -177,7 +190,7 @@ MIT License
 [Akihiro Urushihara](https://github.com/uakihir0)
 
 [khttpclient]: https://github.com/uakihir0/khttpclient
-[grpc-kotlin]: https://github.com/grpc/grpc-kotlin
+[kmpgrpc]: https://github.com/TimOrtel/GRPC-Kotlin-Multiplatform
 [badge-jvm]: http://img.shields.io/badge/-jvm-DB413D.svg
 [badge-js]: http://img.shields.io/badge/-js-F8DB5D.svg
 [badge-ios]: http://img.shields.io/badge/-ios-CDCDCD.svg

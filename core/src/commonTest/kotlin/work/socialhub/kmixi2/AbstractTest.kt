@@ -1,9 +1,7 @@
 package work.socialhub.kmixi2
 
-import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import work.socialhub.kmixi2.api.request.auth.AuthObtainTokenRequest
-import java.io.File
 import kotlin.test.BeforeTest
 
 open class AbstractTest {
@@ -23,7 +21,8 @@ open class AbstractTest {
         ignoreUnknownKeys = true
     }
 
-    fun mixi2(): Mixi2 {
+    suspend fun mixi2(): Mixi2 {
+        ensureToken()
         return Mixi2Factory.instance(
             HOST!!,
             ACCESS_TOKEN ?: "",
@@ -34,22 +33,14 @@ open class AbstractTest {
     @BeforeTest
     fun setupTest() {
         try {
-            HOST = System.getenv("MIXI2_HOST")
-                ?: System.getProperty("MIXI2_HOST")
-            CLIENT_ID = System.getenv("MIXI2_CLIENT_ID")
-                ?: System.getProperty("MIXI2_CLIENT_ID")
-            CLIENT_SECRET = System.getenv("MIXI2_CLIENT_SECRET")
-                ?: System.getProperty("MIXI2_CLIENT_SECRET")
-            TOKEN_ENDPOINT = System.getenv("MIXI2_TOKEN_ENDPOINT")
-                ?: System.getProperty("MIXI2_TOKEN_ENDPOINT")
-            AUTH_KEY = System.getenv("MIXI2_AUTH_KEY")
-                ?: System.getProperty("MIXI2_AUTH_KEY")
-            ACCESS_TOKEN = System.getenv("MIXI2_ACCESS_TOKEN")
-                ?: System.getProperty("MIXI2_ACCESS_TOKEN")
-            STREAM_HOST = System.getenv("MIXI2_STREAM_HOST")
-                ?: System.getProperty("MIXI2_STREAM_HOST")
-            TEST_ROOM_ID = System.getenv("MIXI2_TEST_ROOM_ID")
-                ?: System.getProperty("MIXI2_TEST_ROOM_ID")
+            HOST = getEnvVar("MIXI2_HOST")
+            CLIENT_ID = getEnvVar("MIXI2_CLIENT_ID")
+            CLIENT_SECRET = getEnvVar("MIXI2_CLIENT_SECRET")
+            TOKEN_ENDPOINT = getEnvVar("MIXI2_TOKEN_ENDPOINT")
+            AUTH_KEY = getEnvVar("MIXI2_AUTH_KEY")
+            ACCESS_TOKEN = getEnvVar("MIXI2_ACCESS_TOKEN")
+            STREAM_HOST = getEnvVar("MIXI2_STREAM_HOST")
+            TEST_ROOM_ID = getEnvVar("MIXI2_TEST_ROOM_ID")
         } catch (_: Exception) {
         }
 
@@ -69,7 +60,9 @@ open class AbstractTest {
         if (HOST == null) {
             throw IllegalStateException("No credentials exist for testing...")
         }
+    }
 
+    private suspend fun ensureToken() {
         if (ACCESS_TOKEN.isNullOrEmpty() && !CLIENT_ID.isNullOrEmpty()) {
             val request = AuthObtainTokenRequest().also {
                 it.clientId = CLIENT_ID
@@ -77,17 +70,25 @@ open class AbstractTest {
                 it.tokenEndpoint = TOKEN_ENDPOINT
             }
             val response = Mixi2Factory.instance(HOST!!, "").auth()
-                .obtainTokenBlocking(request)
+                .obtainToken(request)
             ACCESS_TOKEN = response.data.accessToken
         }
     }
 
     private fun readTestProps(): Map<String, Map<String, String>>? {
-        return try {
-            val jsonStr = File("../secrets.json").readText()
-            json.decodeFromString<Map<String, Map<String, String>>>(jsonStr)
-        } catch (e: Exception) {
-            null
+        val secretsFile = getEnvVar("SECRETS_FILE")
+        val paths = listOfNotNull(
+            secretsFile,
+            "../secrets.json",
+            "secrets.json",
+        )
+        for (path in paths) {
+            try {
+                val jsonStr = readFileText(path) ?: continue
+                return json.decodeFromString<Map<String, Map<String, String>>>(jsonStr)
+            } catch (_: Exception) {
+            }
         }
+        return null
     }
 }

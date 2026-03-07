@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository is a mixi2 API client library for Kotlin Multiplatform. mixi2 uses gRPC (Protocol Buffers) for its API, unlike the other SDKs in PlanetLink which use REST/JSON. All platforms (JVM, JS, iOS, macOS) are fully supported via [GRPC-Kotlin-Multiplatform](https://github.com/TimOrtel/GRPC-Kotlin-Multiplatform) v1.5.0.
+This repository is a mixi2 API client library for Kotlin Multiplatform. mixi2 uses gRPC (Protocol Buffers) for its API, unlike the other SDKs in PlanetLink which use REST/JSON. JVM, iOS, and macOS platforms are fully supported via [GRPC-Kotlin-Multiplatform](https://github.com/TimOrtel/GRPC-Kotlin-Multiplatform) v1.5.0. JS platform is limited to Auth (HTTP POST) only — the mixi2 server does not support grpc-web.
 
 ## Key Concepts
 
@@ -87,10 +87,13 @@ Proto code generation is handled by the `grpc/` module using the KMP gRPC plugin
 
 ## Testing
 
+Tests are in `commonTest` and run on JVM and Native (macOS). JS tests are stub-only (gRPC not available).
+
 Run all core tests:
 
 ```shell
-./gradlew :core:jvmTest
+./gradlew :core:jvmTest                    # JVM
+./gradlew :core:macosArm64Test             # macOS Native
 ```
 
 Run specific tests:
@@ -108,11 +111,18 @@ If network access is not available, verify successful build:
 
 If authentication credentials are required for tests, create `secrets.json` based on `secrets.json.default`.
 
+Test infrastructure uses `expect`/`actual` for platform-specific operations:
+- `commonTest`: `TestPlatform.kt` (expect declarations for `getEnvVar`, `readFileText`)
+- `jvmTest`: `TestPlatform.jvm.kt` (System.getenv + java.io.File)
+- `nativeTest`: `TestPlatform.native.kt` (posix getenv + fopen/fgets)
+- `jsTest`: `TestPlatform.js.kt` (stub returning null — tests will skip on JS)
+
 ## Implementation Guidelines
 
 ### Transport Layer
 
-- **All platforms**: KMP gRPC v1.5.0 (`io.github.timortel:kmp-grpc-core`) — JVM (OkHttp), JS (grpc-web), Native (gRPC C core)
+- **JVM/iOS/macOS**: KMP gRPC v1.5.0 (`io.github.timortel:kmp-grpc-core`) — JVM (OkHttp), Native (gRPC C core)
+- **JS**: gRPC API not available (server does not support grpc-web). Auth (HTTP POST) works via khttpclient
 - **Auth (OAuth2)**: Uses khttpclient (standard HTTP POST, not gRPC)
 
 ### Implementation Architecture (commonMain)
@@ -130,7 +140,7 @@ If authentication credentials are required for tests, create `secrets.json` base
 4. Add the method to the appropriate resource interface in `api/`.
 5. Add proto-to-entity mapping in `ProtoMapper.kt` (commonMain).
 6. Update internal implementations under `internal/` (commonMain).
-7. Add or update tests in `core/src/jvmTest/kotlin/`.
+7. Add or update tests in `core/src/commonTest/kotlin/`.
 
 ### Naming Conventions
 
@@ -161,4 +171,4 @@ Models use `kotlinx.serialization` in commonMain. Enum constants mirror proto en
 | Proto-to-entity mapper | `core/src/commonMain/kotlin/work/socialhub/kmixi2/internal/ProtoMapper.kt` |
 | Streaming API | `stream/src/commonMain/kotlin/work/socialhub/kmixi2/stream/` |
 | Stream impl | `stream/src/commonMain/kotlin/work/socialhub/kmixi2/stream/internal/` |
-| Test base | `core/src/jvmTest/kotlin/work/socialhub/kmixi2/AbstractTest.kt` |
+| Test base | `core/src/commonTest/kotlin/work/socialhub/kmixi2/AbstractTest.kt` |
