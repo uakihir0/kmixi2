@@ -1,0 +1,45 @@
+[versions]
+coroutines = "1.10.2"
+kotest = "6.1.3"
+kotlin = "2.3.10"
+nexus-publish = "2.0.0"
+maven-publish = "0.36.0"
+dokka = "2.1.0"
+
+# gRPC / Protobuf (JVM only)
+grpc-kotlin = "1.4.3"
+grpc-java = "1.72.0"
+protobuf = "4.31.1"
+
+[libraries]
+khttpclient = "work.socialhub:khttpclient:0.0.9-SNAPSHOT"
+kmpcommon = "work.socialhub:kmpcommon:0.0.1-SNAPSHOT"
+ktor-core = "io.ktor:ktor-client-core:3.4.0"
+datetime = "org.jetbrains.kotlinx:kotlinx-datetime:0.7.1-0.6.x-compat"
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+serialization-json = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0"
+kotest-junit5 = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" }
+kotest-assertions = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
+
+# gRPC / Protobuf (JVM only)
+grpc-kotlin-stub = { module = "io.grpc:grpc-kotlin-stub", version.ref = "grpc-kotlin" }
+grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc-java" }
+grpc-netty-shaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc-java" }
+protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin", version.ref = "protobuf" }
+
+# Publishing plugins (for plugins module)
+nexus-publish = { module = "io.github.gradle-nexus.publish-plugin:io.github.gradle-nexus.publish-plugin.gradle.plugin", version.ref = "nexus-publish" }
+maven-publish = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "maven-publish" }
+dokka = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
+slf4j-simple = "org.slf4j:slf4j-simple:2.0.17"
+
+[plugins]
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-cocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = "kotlin" }
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+swiftpackage = "io.github.luca992.multiplatform-swiftpackage:2.3.0"
+git-versioning = "me.qoomon.git-versioning:6.4.4"
+protobuf = { id = "com.google.protobuf", version = "0.9.4" }
