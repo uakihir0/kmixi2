@@ -1,6 +1,8 @@
 package work.socialhub.kmixi2
 
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
+import work.socialhub.kmixi2.api.request.auth.AuthObtainTokenRequest
 import java.io.File
 import kotlin.test.BeforeTest
 
@@ -58,6 +60,17 @@ open class AbstractTest {
 
         if (HOST == null) {
             throw IllegalStateException("No credentials exist for testing...")
+        }
+
+        if (ACCESS_TOKEN.isNullOrEmpty() && !CLIENT_ID.isNullOrEmpty()) {
+            val request = AuthObtainTokenRequest().also {
+                it.clientId = CLIENT_ID
+                it.clientSecret = CLIENT_SECRET
+                it.tokenEndpoint = TOKEN_ENDPOINT
+            }
+            val response = Mixi2Factory.instance(HOST!!, "").auth()
+                .obtainTokenBlocking(request)
+            ACCESS_TOKEN = response.data.accessToken
         }
     }
 
