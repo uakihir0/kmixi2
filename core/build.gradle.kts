@@ -41,16 +41,12 @@ kotlin {
         }
 
         commonMain.dependencies {
+            implementation(project(":grpc"))
             implementation(libs.ktor.core)
             implementation(libs.kmpcommon)
             implementation(libs.khttpclient)
             implementation(libs.datetime)
             implementation(libs.serialization.json)
-        }
-
-        jvmMain.dependencies {
-            // gRPC — temporarily keep JVM-only until commonMain migration
-            implementation(project(":grpc"))
         }
 
         // for test (kotlin/jvm)

@@ -1,8 +1,8 @@
 package work.socialhub.kmixi2.internal
 
-import social.mixi.application.constant.v1.PostMaskTypeOuterClass.PostMaskType
-import social.mixi.application.constant.v1.PostPublishingTypeOuterClass.PostPublishingType
-import social.mixi.application.model.v1.PostOuterClass
+import social.mixi.application.constant.v1.PostMaskType
+import social.mixi.application.constant.v1.PostPublishingType
+import social.mixi.application.model.v1.Post
 import social.mixi.application.service.application_api.v1.Service
 import work.socialhub.kmixi2.api.PostsResource
 import work.socialhub.kmixi2.api.request.posts.PostsCreatePostRequest
@@ -26,10 +26,10 @@ class PostsResourceImpl(
     override suspend fun getPosts(
         request: PostsGetPostsRequest
     ): Response<PostsGetPostsResponse> = proceed {
-        val grpcRequest = Service.GetPostsRequest.newBuilder()
-            .addAllPostIdList(request.postIdList?.toList() ?: emptyList())
-            .build()
-        val grpcResponse = stub.getPosts(grpcRequest)
+        val grpcRequest = Service.GetPostsRequest(
+            post_id_listList = request.postIdList?.toList() ?: emptyList()
+        )
+        val grpcResponse = stub.GetPosts(grpcRequest, authMetadata())
         Response(PostsGetPostsResponse().also {
             it.posts = grpcResponse.postsList.map { p -> p.toEntity() }.toTypedArray()
         })
@@ -42,23 +42,24 @@ class PostsResourceImpl(
     override suspend fun createPost(
         request: PostsCreatePostRequest
     ): Response<PostsCreatePostResponse> = proceed {
-        val builder = Service.CreatePostRequest.newBuilder()
-            .setText(request.text ?: "")
-        request.inReplyToPostId?.let { builder.setInReplyToPostId(it) }
-        request.quotedPostId?.let { builder.setQuotedPostId(it) }
-        request.mediaIdList?.let { builder.addAllMediaIdList(it.toList()) }
-        request.maskType?.let { maskType ->
-            val maskBuilder = PostOuterClass.PostMask.newBuilder()
-                .setMaskType(PostMaskType.valueOf(maskType))
-            request.maskCaption?.let { maskBuilder.setCaption(it) }
-            builder.setPostMask(maskBuilder.build())
-        }
-        request.publishingType?.let {
-            builder.setPublishingType(PostPublishingType.valueOf(it))
-        }
-        val grpcResponse = stub.createPost(builder.build())
+        val grpcRequest = Service.CreatePostRequest(
+            text = request.text ?: "",
+            in_reply_to_post_id = request.inReplyToPostId,
+            quoted_post_id = request.quotedPostId,
+            media_id_listList = request.mediaIdList?.toList() ?: emptyList(),
+            post_mask = request.maskType?.let { maskType ->
+                Post.PostMask(
+                    mask_type = PostMaskType.PostMaskType.valueOf(maskType),
+                    caption = request.maskCaption ?: "",
+                )
+            },
+            publishing_type = request.publishingType?.let {
+                PostPublishingType.PostPublishingType.valueOf(it)
+            },
+        )
+        val grpcResponse = stub.CreatePost(grpcRequest, authMetadata())
         Response(PostsCreatePostResponse().also {
-            it.post = if (grpcResponse.hasPost()) grpcResponse.post.toEntity() else null
+            it.post = if (grpcResponse.isPostSet) grpcResponse.post.toEntity() else null
         })
     }
 
@@ -69,17 +70,18 @@ class PostsResourceImpl(
     override suspend fun initiatePostMediaUpload(
         request: PostsInitiatePostMediaUploadRequest
     ): Response<PostsInitiatePostMediaUploadResponse> = proceed {
-        val builder = Service.InitiatePostMediaUploadRequest.newBuilder()
-        request.contentType?.let { builder.setContentType(it) }
-        request.dataSize?.let { builder.setDataSize(it) }
-        request.mediaType?.let {
-            builder.setMediaType(Service.InitiatePostMediaUploadRequest.Type.valueOf(it))
-        }
-        request.description?.let { builder.setDescription(it) }
-        val grpcResponse = stub.initiatePostMediaUpload(builder.build())
+        val grpcRequest = Service.InitiatePostMediaUploadRequest(
+            content_type = request.contentType ?: "",
+            data_size = request.dataSize?.toULong() ?: 0uL,
+            media_type = request.mediaType?.let {
+                Service.InitiatePostMediaUploadRequest.Type.valueOf(it)
+            } ?: Service.InitiatePostMediaUploadRequest.Type.TYPE_UNSPECIFIED,
+            description = request.description,
+        )
+        val grpcResponse = stub.InitiatePostMediaUpload(grpcRequest, authMetadata())
         Response(PostsInitiatePostMediaUploadResponse().also {
-            it.mediaId = grpcResponse.mediaId
-            it.uploadUrl = grpcResponse.uploadUrl
+            it.mediaId = grpcResponse.media_id
+            it.uploadUrl = grpcResponse.upload_url
         })
     }
 
@@ -90,10 +92,10 @@ class PostsResourceImpl(
     override suspend fun getPostMediaStatus(
         request: PostsGetPostMediaStatusRequest
     ): Response<PostsGetPostMediaStatusResponse> = proceed {
-        val grpcRequest = Service.GetPostMediaStatusRequest.newBuilder()
-            .setMediaId(request.mediaId ?: "")
-            .build()
-        val grpcResponse = stub.getPostMediaStatus(grpcRequest)
+        val grpcRequest = Service.GetPostMediaStatusRequest(
+            media_id = request.mediaId ?: ""
+        )
+        val grpcResponse = stub.GetPostMediaStatus(grpcRequest, authMetadata())
         Response(PostsGetPostMediaStatusResponse().also {
             it.status = grpcResponse.status.name
         })

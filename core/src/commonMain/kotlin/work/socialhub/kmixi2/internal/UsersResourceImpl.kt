@@ -17,10 +17,10 @@ class UsersResourceImpl(
     override suspend fun getUsers(
         request: UsersGetUsersRequest
     ): Response<UsersGetUsersResponse> = proceed {
-        val grpcRequest = Service.GetUsersRequest.newBuilder()
-            .addAllUserIdList(request.userIdList?.toList() ?: emptyList())
-            .build()
-        val grpcResponse = stub.getUsers(grpcRequest)
+        val grpcRequest = Service.GetUsersRequest(
+            user_id_listList = request.userIdList?.toList() ?: emptyList()
+        )
+        val grpcResponse = stub.GetUsers(grpcRequest, authMetadata())
         Response(UsersGetUsersResponse().also {
             it.users = grpcResponse.usersList.map { u -> u.toEntity() }.toTypedArray()
         })

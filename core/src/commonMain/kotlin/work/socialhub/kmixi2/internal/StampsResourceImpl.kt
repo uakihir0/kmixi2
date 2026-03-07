@@ -1,6 +1,6 @@
 package work.socialhub.kmixi2.internal
 
-import social.mixi.application.constant.v1.LanguageCodeOuterClass.LanguageCode
+import social.mixi.application.constant.v1.LanguageCode
 import social.mixi.application.service.application_api.v1.Service
 import work.socialhub.kmixi2.api.StampsResource
 import work.socialhub.kmixi2.api.request.stamps.StampsAddStampToPostRequest
@@ -20,13 +20,14 @@ class StampsResourceImpl(
     override suspend fun getStamps(
         request: StampsGetStampsRequest
     ): Response<StampsGetStampsResponse> = proceed {
-        val builder = Service.GetStampsRequest.newBuilder()
-        request.officialStampLanguage?.let {
-            builder.setOfficialStampLanguage(LanguageCode.valueOf(it))
-        }
-        val grpcResponse = stub.getStamps(builder.build())
+        val grpcRequest = Service.GetStampsRequest(
+            official_stamp_language = request.officialStampLanguage?.let {
+                LanguageCode.LanguageCode.valueOf(it)
+            }
+        )
+        val grpcResponse = stub.GetStamps(grpcRequest, authMetadata())
         Response(StampsGetStampsResponse().also {
-            it.officialStampSets = grpcResponse.officialStampSetsList
+            it.officialStampSets = grpcResponse.official_stamp_setsList
                 .map { s -> s.toEntity() }.toTypedArray()
         })
     }
@@ -38,13 +39,13 @@ class StampsResourceImpl(
     override suspend fun addStampToPost(
         request: StampsAddStampToPostRequest
     ): Response<StampsAddStampToPostResponse> = proceed {
-        val grpcRequest = Service.AddStampToPostRequest.newBuilder()
-            .setPostId(request.postId ?: "")
-            .setStampId(request.stampId ?: "")
-            .build()
-        val grpcResponse = stub.addStampToPost(grpcRequest)
+        val grpcRequest = Service.AddStampToPostRequest(
+            post_id = request.postId ?: "",
+            stamp_id = request.stampId ?: "",
+        )
+        val grpcResponse = stub.AddStampToPost(grpcRequest, authMetadata())
         Response(StampsAddStampToPostResponse().also {
-            it.post = if (grpcResponse.hasPost()) grpcResponse.post.toEntity() else null
+            it.post = if (grpcResponse.isPostSet) grpcResponse.post.toEntity() else null
         })
     }
 

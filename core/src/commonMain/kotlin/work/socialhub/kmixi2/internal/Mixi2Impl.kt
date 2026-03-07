@@ -1,14 +1,13 @@
 package work.socialhub.kmixi2.internal
 
-import io.grpc.ManagedChannel
-import io.grpc.ManagedChannelBuilder
+import io.github.timortel.kmpgrpc.core.Channel
+import social.mixi.application.service.application_api.v1.Service
 import work.socialhub.kmixi2.Mixi2
 import work.socialhub.kmixi2.api.AuthResource
 import work.socialhub.kmixi2.api.ChatResource
 import work.socialhub.kmixi2.api.PostsResource
 import work.socialhub.kmixi2.api.StampsResource
 import work.socialhub.kmixi2.api.UsersResource
-import java.util.concurrent.TimeUnit
 
 class Mixi2Impl(
     private val host: String,
@@ -16,21 +15,25 @@ class Mixi2Impl(
     private val authKey: String?,
 ) : Mixi2 {
 
-    internal val channel: ManagedChannel by lazy {
-        ManagedChannelBuilder
-            .forTarget(host)
-            .useTransportSecurity()
-            .build()
+    internal val channel: Channel by lazy {
+        val parts = host.split(":")
+        val hostname = parts[0]
+        val port = if (parts.size > 1) parts[1].toInt() else 443
+        Channel.Builder.Companion.forAddress(hostname, port).build()
+    }
+
+    private val stub: Service.ApplicationServiceStub by lazy {
+        Service.ApplicationServiceStub(channel)
     }
 
     private val users: UsersResource = UsersResourceImpl(host, accessToken, authKey)
-        .also { it.channel = channel }
+        .also { it.stub = stub }
     private val posts: PostsResource = PostsResourceImpl(host, accessToken, authKey)
-        .also { it.channel = channel }
+        .also { it.stub = stub }
     private val chat: ChatResource = ChatResourceImpl(host, accessToken, authKey)
-        .also { it.channel = channel }
+        .also { it.stub = stub }
     private val stamps: StampsResource = StampsResourceImpl(host, accessToken, authKey)
-        .also { it.channel = channel }
+        .also { it.stub = stub }
     private val auth: AuthResource = AuthResourceImpl()
 
     override fun users() = users
@@ -42,7 +45,7 @@ class Mixi2Impl(
     override fun accessToken() = accessToken
     override fun authKey() = authKey
 
-    fun close() {
-        channel.shutdown().awaitTermination(5, TimeUnit.SECONDS)
+    suspend fun close() {
+        channel.shutdown()
     }
 }

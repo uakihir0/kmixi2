@@ -17,13 +17,14 @@ class ChatResourceImpl(
     override suspend fun sendChatMessage(
         request: ChatSendChatMessageRequest
     ): Response<ChatSendChatMessageResponse> = proceed {
-        val builder = Service.SendChatMessageRequest.newBuilder()
-            .setRoomId(request.roomId ?: "")
-        request.text?.let { builder.setText(it) }
-        request.mediaId?.let { builder.setMediaId(it) }
-        val grpcResponse = stub.sendChatMessage(builder.build())
+        val grpcRequest = Service.SendChatMessageRequest(
+            room_id = request.roomId ?: "",
+            text = request.text,
+            media_id = request.mediaId,
+        )
+        val grpcResponse = stub.SendChatMessage(grpcRequest, authMetadata())
         Response(ChatSendChatMessageResponse().also {
-            it.message = if (grpcResponse.hasMessage()) grpcResponse.message.toEntity() else null
+            it.message = if (grpcResponse.isMessageSet) grpcResponse.message.toEntity() else null
         })
     }
 
