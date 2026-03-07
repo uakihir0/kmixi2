@@ -10,8 +10,6 @@ class StreamResourceImpl(
 ) : StreamResource {
 
     override fun eventStream(): EventStream {
-        // TODO: Create gRPC server-streaming connection
-        //  to ApplicationStreamService.SubscribeEvents
         return EventStreamImpl(host, accessToken, authKey)
     }
 }

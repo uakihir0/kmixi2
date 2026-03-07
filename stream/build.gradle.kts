@@ -18,6 +18,14 @@ kotlin {
         browser()
         binaries.library()
         generateTypeScriptDefinitions()
+
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xenable-suspend-function-exporting")
+                }
+            }
+        }
     }
     iosX64()
     iosArm64()
@@ -34,16 +42,12 @@ kotlin {
 
         commonMain.dependencies {
             implementation(project(":core"))
+            implementation(project(":grpc"))
             implementation(libs.ktor.core)
             implementation(libs.kmpcommon)
             implementation(libs.khttpclient)
             implementation(libs.coroutines.core)
             implementation(libs.serialization.json)
-        }
-
-        jvmMain.dependencies {
-            // gRPC — temporarily keep JVM-only until commonMain migration
-            implementation(project(":grpc"))
         }
 
         // for test (kotlin/jvm)

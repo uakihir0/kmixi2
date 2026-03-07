@@ -1,26 +1,18 @@
 package work.socialhub.kmixi2.stream.internal
 
-import io.grpc.CallOptions
-import io.grpc.Channel
-import io.grpc.ClientCall
-import io.grpc.ClientInterceptor
-import io.grpc.ForwardingClientCall.SimpleForwardingClientCall
-import io.grpc.ManagedChannel
-import io.grpc.ManagedChannelBuilder
-import io.grpc.Metadata
-import io.grpc.MethodDescriptor
-import kotlinx.coroutines.Dispatchers
+import io.github.timortel.kmpgrpc.core.Channel
+import io.github.timortel.kmpgrpc.core.metadata.Entry
+import io.github.timortel.kmpgrpc.core.metadata.Key
+import io.github.timortel.kmpgrpc.core.metadata.Metadata
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import social.mixi.application.service.application_stream.v1.ApplicationServiceGrpcKt
 import social.mixi.application.service.application_stream.v1.Service
 import work.socialhub.kmixi2.internal.toEntity
 import work.socialhub.kmixi2.stream.EventStream
 import work.socialhub.kmixi2.stream.listener.EventStreamListener
 import work.socialhub.kmixi2.stream.listener.LifeCycleListener
-import java.util.concurrent.TimeUnit
 
 class EventStreamImpl(
     private val host: String,
@@ -32,54 +24,42 @@ class EventStreamImpl(
     private var lifeCycleListener: LifeCycleListener? = null
     private var isOpen = false
 
-    private var channel: ManagedChannel? = null
+    private var channel: Channel? = null
     private var job: Job? = null
 
-    private fun createStub(): ApplicationServiceGrpcKt.ApplicationServiceCoroutineStub {
-        val ch = ManagedChannelBuilder.forTarget(host)
-            .useTransportSecurity()
-            .build()
+    private fun createStub(): Service.ApplicationServiceStub {
+        val parts = host.split(":")
+        val hostname = parts[0]
+        val port = if (parts.size > 1) parts[1].toInt() else 443
+        val ch = Channel.Builder.Companion.forAddress(hostname, port).build()
         channel = ch
+        return Service.ApplicationServiceStub(ch)
+    }
 
-        val interceptor = object : ClientInterceptor {
-            override fun <ReqT, RespT> interceptCall(
-                method: MethodDescriptor<ReqT, RespT>,
-                callOptions: CallOptions,
-                next: Channel
-            ): ClientCall<ReqT, RespT> {
-                return object : SimpleForwardingClientCall<ReqT, RespT>(
-                    next.newCall(method, callOptions)
-                ) {
-                    override fun start(responseListener: Listener<RespT>, headers: Metadata) {
-                        if (accessToken.isNotEmpty()) {
-                            headers.put(
-                                Metadata.Key.of("Authorization", Metadata.ASCII_STRING_MARSHALLER),
-                                "Bearer $accessToken"
-                            )
-                        }
-                        authKey?.let {
-                            headers.put(
-                                Metadata.Key.of("x-auth-key", Metadata.ASCII_STRING_MARSHALLER),
-                                it
-                            )
-                        }
-                        super.start(responseListener, headers)
-                    }
-                }
-            }
+    private fun authMetadata(): Metadata {
+        val entries = mutableListOf<Entry<*>>()
+        if (accessToken.isNotEmpty()) {
+            entries += Entry.Ascii(
+                Key.AsciiKey("authorization"),
+                setOf("Bearer $accessToken")
+            )
         }
-
-        return ApplicationServiceGrpcKt.ApplicationServiceCoroutineStub(ch)
-            .withInterceptors(interceptor)
+        authKey?.let {
+            entries += Entry.Ascii(
+                Key.AsciiKey("x-auth-key"),
+                setOf(it)
+            )
+        }
+        return Metadata.of(entries)
     }
 
     override suspend fun open() {
         val stub = createStub()
-        val request = Service.SubscribeEventsRequest.newBuilder().build()
-        val flow = stub.subscribeEvents(request)
+        val request = Service.SubscribeEventsRequest()
+        val flow = stub.SubscribeEvents(request, authMetadata())
 
         coroutineScope {
-            job = launch(Dispatchers.IO) {
+            job = launch {
                 try {
                     isOpen = true
                     lifeCycleListener?.onConnect()
@@ -106,11 +86,9 @@ class EventStreamImpl(
         }
     }
 
-    override fun close() {
-        kotlinx.coroutines.runBlocking {
-            job?.cancelAndJoin()
-        }
-        channel?.shutdown()?.awaitTermination(5, TimeUnit.SECONDS)
+    override suspend fun close() {
+        job?.cancelAndJoin()
+        channel?.shutdown()
         channel = null
         isOpen = false
     }
