@@ -14,5 +14,5 @@ class AuthObtainTokenResponse {
     var tokenType: String = ""
 
     @SerialName("expires_in")
-    var expiresIn: Long = 0
+    var expiresIn: Int = 0
 }

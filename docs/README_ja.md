@@ -1,14 +1,27 @@
 # kmixi2
 
 ![badge][badge-jvm]
+![badge][badge-ios]
+![badge][badge-mac]
 
 **このライブラリは [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html) に対応した [mixi2](https://mixi.social/) クライアントライブラリです。**
 PlanetLink の他の SDK と異なり、mixi2 は REST/JSON ではなく gRPC (Protocol Buffers) を使用しています。
-JVM プラットフォームは [grpc-kotlin] を使用して完全に実装されています。JS/Native プラットフォームは現在スタブの状態です。
+全プラットフォーム (JVM, iOS, macOS) は [GRPC-Kotlin-Multiplatform][kmpgrpc] v1.5.0 を使用して完全に実装されています。
 認証 (OAuth2) は HTTP POST トークンエンドポイント用に [khttpclient] を使用しています。
 
 Proto 定義: https://github.com/mixigroup/mixi2-api
 Go SDK リファレンス: https://github.com/mixigroup/mixi2-application-sdk-go
+
+### プラットフォーム対応状況
+
+| プラットフォーム | gRPC API | 認証 (HTTP) | ストリーミング | 備考 |
+|-----------------|----------|-------------|--------------|------|
+| JVM | OK | OK | OK | OkHttp トランスポート |
+| iOS | OK | OK | OK | gRPC C-core トランスポート |
+| macOS | OK | OK | OK | gRPC C-core トランスポート |
+| JS | - | OK | - | サーバーが grpc-web 未対応 |
+
+> JS プラットフォーム: mixi2 サーバーはブラウザ/Node.js の gRPC 呼び出しに必要な grpc-web プロトコルに対応していません。認証 (HTTP POST) は動作しますが、gRPC API 呼び出しは利用できません。
 
 ## 使い方
 
@@ -159,7 +172,7 @@ stream.open()
 ## ビルド
 
 ```bash
-./gradlew :proto:build    # Proto スタブの生成
+./gradlew :grpc:build     # Proto スタブの生成 (全プラットフォーム)
 ./gradlew jvmJar          # 全 JVM アーティファクトのビルド
 ./gradlew :core:jvmTest   # core テストの実行
 ./gradlew :stream:jvmTest # stream テストの実行
@@ -174,7 +187,7 @@ MIT License
 [Akihiro Urushihara](https://github.com/uakihir0)
 
 [khttpclient]: https://github.com/uakihir0/khttpclient
-[grpc-kotlin]: https://github.com/grpc/grpc-kotlin
+[kmpgrpc]: https://github.com/TimOrtel/GRPC-Kotlin-Multiplatform
 [badge-jvm]: http://img.shields.io/badge/-jvm-DB413D.svg
 [badge-js]: http://img.shields.io/badge/-js-F8DB5D.svg
 [badge-ios]: http://img.shields.io/badge/-ios-CDCDCD.svg

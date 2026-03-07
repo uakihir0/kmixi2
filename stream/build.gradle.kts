@@ -18,6 +18,14 @@ kotlin {
         browser()
         binaries.library()
         generateTypeScriptDefinitions()
+
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xenable-suspend-function-exporting")
+                }
+            }
+        }
     }
     iosX64()
     iosArm64()
@@ -34,6 +42,7 @@ kotlin {
 
         commonMain.dependencies {
             implementation(project(":core"))
+            implementation(project(":grpc"))
             implementation(libs.ktor.core)
             implementation(libs.kmpcommon)
             implementation(libs.khttpclient)
@@ -41,17 +50,12 @@ kotlin {
             implementation(libs.serialization.json)
         }
 
-        jvmMain.dependencies {
-            // gRPC (JVM only) — proto module provides generated stubs
-            implementation(project(":proto"))
-            implementation(libs.grpc.netty.shaded)
-        }
-
         // for test (kotlin/jvm)
         jvmTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.kotest.junit5)
             implementation(libs.kotest.assertions)
+            implementation(libs.coroutines.test)
         }
     }
 }
@@ -61,6 +65,3 @@ tasks.named<Test>("jvmTest") {
     useJUnitPlatform()
 }
 
-tasks.withType<JavaCompile>().configureEach {
-    options.release.set(11)
-}

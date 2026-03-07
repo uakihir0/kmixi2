@@ -7,7 +7,7 @@ import kotlin.js.JsExport
 @JsExport
 interface EventStream {
     suspend fun open()
-    fun close()
+    suspend fun close()
     fun isOpen(): Boolean
     fun onEvent(listener: EventStreamListener): EventStream
     fun onLifeCycle(listener: LifeCycleListener): EventStream

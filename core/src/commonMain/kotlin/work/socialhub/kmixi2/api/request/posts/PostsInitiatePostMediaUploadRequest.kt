@@ -5,7 +5,7 @@ import kotlin.js.JsExport
 @JsExport
 class PostsInitiatePostMediaUploadRequest {
     var contentType: String? = null
-    var dataSize: Long? = null
+    var dataSize: Double? = null
     var mediaType: String? = null
     var description: String? = null
 }
