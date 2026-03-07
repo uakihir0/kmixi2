@@ -1,15 +1,15 @@
 package work.socialhub.kmixi2
 
+import work.socialhub.kmixi2.internal.Mixi2Impl
 import kotlin.js.JsExport
 
-// FIXME: Replace with KMP gRPC library when available.
-//  Currently only JVM is supported via grpc-kotlin.
-//  JS/Native platforms will throw UnsupportedOperationException.
 @JsExport
-expect object Mixi2Factory {
+object Mixi2Factory {
     fun instance(
         host: String,
         accessToken: String = "",
         authKey: String? = null,
-    ): Mixi2
+    ): Mixi2 {
+        return Mixi2Impl(host, accessToken, authKey)
+    }
 }
