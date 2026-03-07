@@ -1,10 +1,13 @@
-import org.gradle.api.tasks.compile.JavaCompile
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.protobuf)
+    // FIXME: Re-enable protobuf plugin when implementing actual gRPC calls.
+    // The protobuf Gradle plugin requires the Java plugin applied first,
+    // which conflicts with kotlin-multiplatform. Proto files remain in
+    // core/src/main/proto/ for reference.
+    // alias(libs.plugins.protobuf)
     id("module.publications")
 }
 
@@ -69,35 +72,32 @@ kotlin {
     }
 }
 
-protobuf {
-    protoc {
-        artifact = "com.google.protobuf:protoc:${libs.versions.protobuf.get()}"
-    }
-    plugins {
-        create("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:${libs.versions.grpc.java.get()}"
-        }
-        create("grpckt") {
-            artifact = "io.grpc:protoc-gen-grpc-kotlin:${libs.versions.grpc.kotlin.get()}:jdk8@jar"
-        }
-    }
-    generateProtoTasks {
-        all().forEach {
-            it.plugins {
-                create("grpc")
-                create("grpckt")
-            }
-            it.builtins {
-                create("kotlin")
-            }
-        }
-    }
-}
+// FIXME: Re-enable protobuf code generation when implementing gRPC calls.
+// protobuf {
+//     protoc {
+//         artifact = "com.google.protobuf:protoc:${libs.versions.protobuf.get()}"
+//     }
+//     plugins {
+//         create("grpc") {
+//             artifact = "io.grpc:protoc-gen-grpc-java:${libs.versions.grpc.java.get()}"
+//         }
+//         create("grpckt") {
+//             artifact = "io.grpc:protoc-gen-grpc-kotlin:${libs.versions.grpc.kotlin.get()}:jdk8@jar"
+//         }
+//     }
+//     generateProtoTasks {
+//         all().forEach {
+//             it.plugins {
+//                 create("grpc")
+//                 create("grpckt")
+//             }
+//             it.builtins {
+//                 create("kotlin")
+//             }
+//         }
+//     }
+// }
 
 tasks.named<Test>("jvmTest") {
     useJUnitPlatform()
-}
-
-tasks.withType<JavaCompile>().configureEach {
-    options.release.set(11)
 }
