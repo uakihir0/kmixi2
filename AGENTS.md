@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository is a mixi2 API client library for Kotlin Multiplatform. mixi2 uses gRPC (Protocol Buffers) for its API, unlike the other SDKs in PlanetLink which use REST/JSON. The JVM platform is implemented first using grpc-kotlin; JS and Native platforms are stubs pending a KMP gRPC library.
+This repository is a mixi2 API client library for Kotlin Multiplatform. mixi2 uses gRPC (Protocol Buffers) for its API, unlike the other SDKs in PlanetLink which use REST/JSON. The JVM platform is fully implemented using grpc-kotlin; JS and Native platforms are stubs pending a KMP gRPC library.
 
 **FIXME**: JS/Native implementations are stubs. A separate KMP gRPC library needs to be created and integrated to enable multiplatform support.
 
@@ -52,18 +52,37 @@ Event types:
 
 ## Directory Structure
 
-- **`core/`**: gRPC API client library
+- **`proto/`**: JVM-only module for Protocol Buffer code generation
   - `src/main/proto/` - Protocol Buffer definitions
+  - Generated Java/Kotlin stubs for gRPC services and message types
+- **`core/`**: gRPC API client library
   - `api/` - Resource interfaces
     - `request/` - Request objects (grouped by resource)
     - `response/` - Response objects (grouped by resource)
   - `entity/` - Data models (User, Post, ChatMessage, etc.)
     - `constant/` - Enum types matching proto enums
-  - `internal/` - JVM implementations (gRPC stubs, TODO)
+  - `internal/` - JVM implementations (gRPC stubs, ProtoMapper)
   - `util/` - Utilities (BlockingUtil, Headers)
 - **`stream/`**: Streaming API (gRPC server-streaming)
 - **`all/`**: Package containing all modules (for platform distribution)
 - **`plugins/`**: Gradle build configuration
+
+## Build
+
+Proto code generation is handled by the `proto/` module (JVM-only, `java-library` + `com.google.protobuf` plugin). The `core/` and `stream/` modules depend on `proto/` via `project(":proto")`.
+
+```shell
+./gradlew :proto:build    # Generate proto stubs
+./gradlew jvmJar          # Build all JVM artifacts
+./gradlew :core:jvmTest   # Run core tests
+./gradlew :stream:jvmTest # Run stream tests
+```
+
+### Proto Module Notes
+
+- Proto package `social.mixi.application.const.v1` is remapped to Java package `social.mixi.application.constant.v1` via `option java_package` to avoid Java reserved keyword `const`.
+- Kotlin DSL protobuf wrappers (`builtins { create("kotlin") }`) are not used to avoid circular dependency between `compileJava` and `compileKotlin`. Use Java protobuf classes with `.newBuilder()` pattern.
+- `grpc-stub` version is explicitly aligned with `protoc-gen-grpc-java` to avoid API mismatch.
 
 ## Testing
 
@@ -92,27 +111,26 @@ If authentication credentials are required for tests, create `secrets.json` base
 
 ### Transport Layer
 
-- **JVM**: grpc-kotlin (`io.grpc:grpc-kotlin-stub`) + grpc-netty-shaded + protobuf-kotlin
+- **JVM**: grpc-kotlin (`io.grpc:grpc-kotlin-stub`) + grpc-netty-shaded + protobuf (Java classes)
 - **JS/Native**: Stubs that throw `UnsupportedOperationException` (FIXME: awaiting KMP gRPC library)
 - **Auth (OAuth2)**: Uses khttpclient (standard HTTP POST, not gRPC)
 
-### Proto to Code Generation
+### JVM Implementation Architecture
 
-Proto files in `core/src/main/proto/` are compiled by the protobuf Gradle plugin:
-
-```shell
-./gradlew generateProto
-```
-
-Generated Kotlin code is used by JVM internal implementations to make gRPC calls.
+- `AbstractResourceImpl` - Base class providing gRPC channel, auth interceptor (`Bearer` + `x-auth-key`), and `proceed {}` error wrapper
+- `ProtoMapper.kt` - Extension functions converting generated Java protobuf classes to SDK entity classes
+- `Mixi2Impl` - Creates a shared `ManagedChannel` and injects it into all resource implementations
+- `EventStreamImpl` - Creates its own channel and collects `SubscribeEvents` server-streaming flow
 
 ### Steps to Add a New API
 
-1. If adding a new RPC, update the proto files in `core/src/main/proto/`.
-2. Add request/response models in `core/src/commonMain/kotlin/work/socialhub/kmixi2/api/request/` and `.../response/`.
-3. Add the method to the appropriate resource interface in `api/`.
-4. Update internal implementations under `internal/` (JVM).
-5. Add or update tests in `core/src/jvmTest/kotlin/`.
+1. If adding a new RPC, update the proto files in `proto/src/main/proto/`.
+2. Run `./gradlew :proto:build` to regenerate stubs.
+3. Add request/response models in `core/src/commonMain/kotlin/work/socialhub/kmixi2/api/request/` and `.../response/`.
+4. Add the method to the appropriate resource interface in `api/`.
+5. Add proto-to-entity mapping in `ProtoMapper.kt`.
+6. Update internal implementations under `internal/` (JVM).
+7. Add or update tests in `core/src/jvmTest/kotlin/`.
 
 ### Naming Conventions
 
@@ -126,7 +144,7 @@ Generated Kotlin code is used by JVM internal implementations to make gRPC calls
 
 ### Entity Models
 
-Models use `kotlinx.serialization` in commonMain. Enum constants mirror proto enum values with a `from(value: String)` companion factory method.
+Models use `kotlinx.serialization` in commonMain. Enum constants mirror proto enum values as strings (proto enum `.name` property).
 
 ## Key File References
 
@@ -137,7 +155,10 @@ Models use `kotlinx.serialization` in commonMain. Enum constants mirror proto en
 | Resource interfaces | `core/src/commonMain/kotlin/work/socialhub/kmixi2/api/` |
 | Request/response models | `core/src/commonMain/kotlin/work/socialhub/kmixi2/api/request/` and `.../response/` |
 | Entity models | `core/src/commonMain/kotlin/work/socialhub/kmixi2/entity/` |
-| Proto definitions | `core/src/main/proto/social/mixi/application/` |
+| Proto definitions | `proto/src/main/proto/social/mixi/application/` |
+| Proto build config | `proto/build.gradle.kts` |
 | JVM implementations | `core/src/jvmMain/kotlin/work/socialhub/kmixi2/internal/` |
+| Proto-to-entity mapper | `core/src/jvmMain/kotlin/work/socialhub/kmixi2/internal/ProtoMapper.kt` |
 | Streaming API | `stream/src/commonMain/kotlin/work/socialhub/kmixi2/stream/` |
+| Stream JVM impl | `stream/src/jvmMain/kotlin/work/socialhub/kmixi2/stream/internal/` |
 | Test base | `core/src/jvmTest/kotlin/work/socialhub/kmixi2/AbstractTest.kt` |
