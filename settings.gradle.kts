@@ -12,7 +12,7 @@ plugins {
 }
 
 rootProject.name = "kmixi2"
-include("proto")
+include("grpc")
 include("core")
 include("stream")
 include("all")

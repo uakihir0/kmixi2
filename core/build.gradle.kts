@@ -49,10 +49,8 @@ kotlin {
         }
 
         jvmMain.dependencies {
-            // gRPC (JVM only) — proto module provides generated stubs
-            // FIXME: Replace with KMP gRPC library when available
-            implementation(project(":proto"))
-            implementation(libs.grpc.netty.shaded)
+            // gRPC — temporarily keep JVM-only until commonMain migration
+            implementation(project(":grpc"))
         }
 
         // for test (kotlin/jvm)
