@@ -11,7 +11,7 @@ class PostsTest : AbstractTest() {
     @Test
     fun testGetPosts() = runTest {
         val request = PostsGetPostsRequest().also {
-            it.postIdList = arrayOf("test-post-id")
+            it.postIdList = arrayOf("5d68c21f-056c-4e40-8a92-9f249e8b232a")
         }
         val response = mixi2().posts().getPosts(request)
         println(response.data.posts.size)

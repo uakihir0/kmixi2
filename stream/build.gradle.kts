@@ -55,6 +55,7 @@ kotlin {
             implementation(kotlin("test"))
             implementation(libs.kotest.junit5)
             implementation(libs.kotest.assertions)
+            implementation(libs.coroutines.test)
         }
     }
 }
@@ -64,6 +65,3 @@ tasks.named<Test>("jvmTest") {
     useJUnitPlatform()
 }
 
-tasks.withType<JavaCompile>().configureEach {
-    options.release.set(11)
-}

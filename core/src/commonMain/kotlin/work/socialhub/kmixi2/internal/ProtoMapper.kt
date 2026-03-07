@@ -115,7 +115,7 @@ fun PostProto.PostMask.toEntity(): PostMask {
 fun PostProto.PostStamp.toEntity(): PostStamp {
     return PostStamp().also { s ->
         s.stamp = if (isStampSet) stamp.toEntity() else null
-        s.count = count.toLong()
+        s.count = count.toInt()
     }
 }
 

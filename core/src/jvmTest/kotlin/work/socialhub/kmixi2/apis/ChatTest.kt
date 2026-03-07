@@ -10,7 +10,7 @@ class ChatTest : AbstractTest() {
     @Test
     fun testSendChatMessage() = runTest {
         val request = ChatSendChatMessageRequest().also {
-            it.roomId = "test-room-id"
+            it.roomId = TEST_ROOM_ID
             it.text = "Hello from kmixi2"
         }
         val response = mixi2().chat().sendChatMessage(request)

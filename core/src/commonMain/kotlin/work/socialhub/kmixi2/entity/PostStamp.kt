@@ -11,5 +11,5 @@ class PostStamp {
     var stamp: MediaStamp? = null
 
     @SerialName("count")
-    var count: Long = 0
+    var count: Int = 0
 }

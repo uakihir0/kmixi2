@@ -15,6 +15,8 @@ open class AbstractTest {
         var TOKEN_ENDPOINT: String? = null
         var AUTH_KEY: String? = null
         var ACCESS_TOKEN: String? = null
+        var STREAM_HOST: String? = null
+        var TEST_ROOM_ID: String? = null
     }
 
     protected val json = Json {
@@ -44,6 +46,10 @@ open class AbstractTest {
                 ?: System.getProperty("MIXI2_AUTH_KEY")
             ACCESS_TOKEN = System.getenv("MIXI2_ACCESS_TOKEN")
                 ?: System.getProperty("MIXI2_ACCESS_TOKEN")
+            STREAM_HOST = System.getenv("MIXI2_STREAM_HOST")
+                ?: System.getProperty("MIXI2_STREAM_HOST")
+            TEST_ROOM_ID = System.getenv("MIXI2_TEST_ROOM_ID")
+                ?: System.getProperty("MIXI2_TEST_ROOM_ID")
         } catch (_: Exception) {
         }
 
@@ -55,6 +61,8 @@ open class AbstractTest {
                 TOKEN_ENDPOINT = it["MIXI2_TOKEN_ENDPOINT"]
                 AUTH_KEY = it["MIXI2_AUTH_KEY"]
                 ACCESS_TOKEN = it["MIXI2_ACCESS_TOKEN"]
+                STREAM_HOST = it["MIXI2_STREAM_HOST"]
+                TEST_ROOM_ID = it["MIXI2_TEST_ROOM_ID"]
             }
         }
 

@@ -72,7 +72,7 @@ class PostsResourceImpl(
     ): Response<PostsInitiatePostMediaUploadResponse> = proceed {
         val grpcRequest = Service.InitiatePostMediaUploadRequest(
             content_type = request.contentType ?: "",
-            data_size = request.dataSize?.toULong() ?: 0uL,
+            data_size = request.dataSize?.toLong()?.toULong() ?: 0uL,
             media_type = request.mediaType?.let {
                 Service.InitiatePostMediaUploadRequest.Type.valueOf(it)
             } ?: Service.InitiatePostMediaUploadRequest.Type.TYPE_UNSPECIFIED,
