@@ -12,8 +12,8 @@ import java.util.concurrent.TimeUnit
 
 class Mixi2Impl(
     private val host: String,
-    internal val accessToken: String,
-    internal val authKey: String?,
+    private val accessToken: String,
+    private val authKey: String?,
 ) : Mixi2 {
 
     internal val channel: ManagedChannel by lazy {
@@ -39,6 +39,8 @@ class Mixi2Impl(
     override fun stamps() = stamps
     override fun auth() = auth
     override fun host() = host
+    override fun accessToken() = accessToken
+    override fun authKey() = authKey
 
     fun close() {
         channel.shutdown().awaitTermination(5, TimeUnit.SECONDS)

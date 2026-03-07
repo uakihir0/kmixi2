@@ -6,7 +6,7 @@ import work.socialhub.kmixi2.stream.internal.StreamResourceImpl
 actual fun Mixi2.stream(): StreamResource {
     return StreamResourceImpl(
         host = host(),
-        accessToken = "", // TODO: Extract from Mixi2 instance
-        authKey = null,
+        accessToken = accessToken(),
+        authKey = authKey(),
     )
 }

@@ -15,4 +15,6 @@ interface Mixi2 {
     fun stamps(): StampsResource
     fun auth(): AuthResource
     fun host(): String
+    fun accessToken(): String
+    fun authKey(): String?
 }
