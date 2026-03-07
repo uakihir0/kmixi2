@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package social.mixi.application.const.v1;
 
+option java_package = "social.mixi.application.constant.v1";
+
 // ポストに添付されるメディア種別を示す列挙型
 enum PostMediaType {
   // 未指定

@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package social.mixi.application.const.v1;
 
+option java_package = "social.mixi.application.constant.v1";
+
 // イベントの発生理由を示す列挙型
 enum EventReason {
   // 未指定

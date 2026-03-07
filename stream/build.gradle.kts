@@ -41,6 +41,12 @@ kotlin {
             implementation(libs.serialization.json)
         }
 
+        jvmMain.dependencies {
+            // gRPC (JVM only) — proto module provides generated stubs
+            implementation(project(":proto"))
+            implementation(libs.grpc.netty.shaded)
+        }
+
         // for test (kotlin/jvm)
         jvmTest.dependencies {
             implementation(kotlin("test"))

@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package social.mixi.application.const.v1;
 
+option java_package = "social.mixi.application.constant.v1";
+
 // ポストの投稿先設定を示す列挙型
 enum PostPublishingType {
   // 未指定（自分のフォロワーのタイムラインに公開）
