@@ -1,5 +1,6 @@
 package work.socialhub.kmixi2.internal
 
+import social.mixi.application.service.application_api.v1.Service
 import work.socialhub.kmixi2.api.ChatResource
 import work.socialhub.kmixi2.api.request.chat.ChatSendChatMessageRequest
 import work.socialhub.kmixi2.api.response.Response
@@ -15,9 +16,15 @@ class ChatResourceImpl(
 
     override suspend fun sendChatMessage(
         request: ChatSendChatMessageRequest
-    ): Response<ChatSendChatMessageResponse> {
-        // TODO: Call ApplicationService.SendChatMessage via gRPC stub
-        TODO("gRPC implementation pending")
+    ): Response<ChatSendChatMessageResponse> = proceed {
+        val builder = Service.SendChatMessageRequest.newBuilder()
+            .setRoomId(request.roomId ?: "")
+        request.text?.let { builder.setText(it) }
+        request.mediaId?.let { builder.setMediaId(it) }
+        val grpcResponse = stub.sendChatMessage(builder.build())
+        Response(ChatSendChatMessageResponse().also {
+            it.message = if (grpcResponse.hasMessage()) grpcResponse.message.toEntity() else null
+        })
     }
 
     override fun sendChatMessageBlocking(

@@ -1,5 +1,7 @@
 package work.socialhub.kmixi2.internal
 
+import social.mixi.application.constant.v1.LanguageCodeOuterClass.LanguageCode
+import social.mixi.application.service.application_api.v1.Service
 import work.socialhub.kmixi2.api.StampsResource
 import work.socialhub.kmixi2.api.request.stamps.StampsAddStampToPostRequest
 import work.socialhub.kmixi2.api.request.stamps.StampsGetStampsRequest
@@ -17,9 +19,16 @@ class StampsResourceImpl(
 
     override suspend fun getStamps(
         request: StampsGetStampsRequest
-    ): Response<StampsGetStampsResponse> {
-        // TODO: Call ApplicationService.GetStamps via gRPC stub
-        TODO("gRPC implementation pending")
+    ): Response<StampsGetStampsResponse> = proceed {
+        val builder = Service.GetStampsRequest.newBuilder()
+        request.officialStampLanguage?.let {
+            builder.setOfficialStampLanguage(LanguageCode.valueOf(it))
+        }
+        val grpcResponse = stub.getStamps(builder.build())
+        Response(StampsGetStampsResponse().also {
+            it.officialStampSets = grpcResponse.officialStampSetsList
+                .map { s -> s.toEntity() }.toTypedArray()
+        })
     }
 
     override fun getStampsBlocking(
@@ -28,9 +37,15 @@ class StampsResourceImpl(
 
     override suspend fun addStampToPost(
         request: StampsAddStampToPostRequest
-    ): Response<StampsAddStampToPostResponse> {
-        // TODO: Call ApplicationService.AddStampToPost via gRPC stub
-        TODO("gRPC implementation pending")
+    ): Response<StampsAddStampToPostResponse> = proceed {
+        val grpcRequest = Service.AddStampToPostRequest.newBuilder()
+            .setPostId(request.postId ?: "")
+            .setStampId(request.stampId ?: "")
+            .build()
+        val grpcResponse = stub.addStampToPost(grpcRequest)
+        Response(StampsAddStampToPostResponse().also {
+            it.post = if (grpcResponse.hasPost()) grpcResponse.post.toEntity() else null
+        })
     }
 
     override fun addStampToPostBlocking(
