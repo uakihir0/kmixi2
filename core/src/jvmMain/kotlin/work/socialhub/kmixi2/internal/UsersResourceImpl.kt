@@ -1,5 +1,6 @@
 package work.socialhub.kmixi2.internal
 
+import social.mixi.application.service.application_api.v1.Service
 import work.socialhub.kmixi2.api.UsersResource
 import work.socialhub.kmixi2.api.request.users.UsersGetUsersRequest
 import work.socialhub.kmixi2.api.response.Response
@@ -15,14 +16,14 @@ class UsersResourceImpl(
 
     override suspend fun getUsers(
         request: UsersGetUsersRequest
-    ): Response<UsersGetUsersResponse> {
-        // TODO: Call ApplicationService.GetUsers via gRPC stub
-        //  val grpcRequest = GetUsersRequest.newBuilder()
-        //      .addAllUserIdList(request.userIdList?.toList() ?: emptyList())
-        //      .build()
-        //  val grpcResponse = applicationServiceStub.getUsers(grpcRequest)
-        //  return Response(grpcResponse.toModel())
-        TODO("gRPC implementation pending")
+    ): Response<UsersGetUsersResponse> = proceed {
+        val grpcRequest = Service.GetUsersRequest.newBuilder()
+            .addAllUserIdList(request.userIdList?.toList() ?: emptyList())
+            .build()
+        val grpcResponse = stub.getUsers(grpcRequest)
+        Response(UsersGetUsersResponse().also {
+            it.users = grpcResponse.usersList.map { u -> u.toEntity() }.toTypedArray()
+        })
     }
 
     override fun getUsersBlocking(
