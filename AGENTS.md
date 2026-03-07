@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository is a mixi2 API client library for Kotlin Multiplatform. mixi2 uses gRPC (Protocol Buffers) for its API, unlike the other SDKs in PlanetLink which use REST/JSON. JVM, iOS, macOS, Linux, and Windows platforms are fully supported via [GRPC-Kotlin-Multiplatform](https://github.com/TimOrtel/GRPC-Kotlin-Multiplatform) v1.5.0. JS platform is limited to Auth (HTTP POST) only — the mixi2 server does not support grpc-web.
+This repository is a mixi2 API client library for Kotlin Multiplatform. mixi2 uses gRPC (Protocol Buffers) for its API, unlike the other SDKs in PlanetLink which use REST/JSON. JVM, iOS, macOS, and Linux platforms are fully supported via [GRPC-Kotlin-Multiplatform](https://github.com/TimOrtel/GRPC-Kotlin-Multiplatform) v1.5.0. Windows (mingwX64) has a native link error upstream (TODO). JS platform is limited to Auth (HTTP POST) only — the mixi2 server does not support grpc-web.
 
 ## Key Concepts
 
@@ -121,7 +121,8 @@ Test infrastructure uses `expect`/`actual` for platform-specific operations:
 
 ### Transport Layer
 
-- **JVM/iOS/macOS/Linux/Windows**: KMP gRPC v1.5.0 (`io.github.timortel:kmp-grpc-core`) — JVM (OkHttp), Native (gRPC C core)
+- **JVM/iOS/macOS/Linux**: KMP gRPC v1.5.0 (`io.github.timortel:kmp-grpc-core`) — JVM (OkHttp), Native (gRPC C core)
+- **Windows (mingwX64)**: TODO — native link error in KMP gRPC (undefined ntdll symbols in libkmp_grpc_native.a)
 - **JS**: gRPC API not available (server does not support grpc-web). Auth (HTTP POST) works via khttpclient
 - **Auth (OAuth2)**: Uses khttpclient (standard HTTP POST, not gRPC)
 

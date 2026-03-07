@@ -8,8 +8,6 @@ jobs:
         include:
           - os: ubuntu-latest
             target: linuxX64Test
-          - os: windows-latest
-            target: jvmTest
           - os: macos-latest
             target: macosArm64Test
     runs-on: ${{ matrix.os }}

@@ -6,12 +6,11 @@
 ![badge][badge-ios]
 ![badge][badge-mac]
 ![badge][badge-linux]
-![badge][badge-windows]
 
 **This library is a [mixi2](https://mixi.social/) client library compatible
 with [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html).**
 Unlike other PlanetLink SDKs, mixi2 uses gRPC (Protocol Buffers) instead of REST/JSON.
-All platforms (JVM, iOS, macOS, Linux, Windows) are fully supported via [GRPC-Kotlin-Multiplatform][kmpgrpc] v1.5.0.
+All platforms (JVM, iOS, macOS, Linux) are fully supported via [GRPC-Kotlin-Multiplatform][kmpgrpc] v1.5.0.
 Authentication (OAuth2) uses [khttpclient] for the HTTP POST token endpoint.
 
 Proto definitions: https://github.com/mixigroup/mixi2-api
@@ -25,7 +24,6 @@ Go SDK reference: https://github.com/mixigroup/mixi2-application-sdk-go
 | iOS | OK | OK | OK | gRPC C-core transport |
 | macOS | OK | OK | OK | gRPC C-core transport |
 | Linux | OK | OK | OK | gRPC C-core transport |
-| Windows | JVM only | OK | JVM only | Native link error in KMP gRPC |
 | JS | - | OK | - | Server does not support grpc-web |
 
 > JS platform: The mixi2 server does not support the grpc-web protocol required for browser/Node.js gRPC calls. Auth (HTTP POST) works, but gRPC API calls are not available.
