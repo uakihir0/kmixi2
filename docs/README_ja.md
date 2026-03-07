@@ -22,7 +22,7 @@ Go SDK リファレンス: https://github.com/mixigroup/mixi2-application-sdk-go
 | iOS | OK | OK | OK | gRPC C-core トランスポート |
 | macOS | OK | OK | OK | gRPC C-core トランスポート |
 | Linux | OK | OK | OK | gRPC C-core トランスポート |
-| Windows | OK | OK | OK | gRPC C-core トランスポート |
+| Windows | JVM のみ | OK | JVM のみ | KMP gRPC の Native リンクエラー |
 | JS | - | OK | - | サーバーが grpc-web 未対応 |
 
 > JS プラットフォーム: mixi2 サーバーはブラウザ/Node.js の gRPC 呼び出しに必要な grpc-web プロトコルに対応していません。認証 (HTTP POST) は動作しますが、gRPC API 呼び出しは利用できません。

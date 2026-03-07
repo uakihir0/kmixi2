@@ -9,7 +9,7 @@ jobs:
           - os: ubuntu-latest
             target: linuxX64Test
           - os: windows-latest
-            target: mingwX64Test
+            target: jvmTest
           - os: macos-latest
             target: macosArm64Test
     runs-on: ${{ matrix.os }}

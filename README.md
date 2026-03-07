@@ -25,7 +25,7 @@ Go SDK reference: https://github.com/mixigroup/mixi2-application-sdk-go
 | iOS | OK | OK | OK | gRPC C-core transport |
 | macOS | OK | OK | OK | gRPC C-core transport |
 | Linux | OK | OK | OK | gRPC C-core transport |
-| Windows | OK | OK | OK | gRPC C-core transport |
+| Windows | JVM only | OK | JVM only | Native link error in KMP gRPC |
 | JS | - | OK | - | Server does not support grpc-web |
 
 > JS platform: The mixi2 server does not support the grpc-web protocol required for browser/Node.js gRPC calls. Auth (HTTP POST) works, but gRPC API calls are not available.
