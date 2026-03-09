@@ -32,6 +32,7 @@ kotlin {
     iosSimulatorArm64()
     macosX64()
     macosArm64()
+    linuxX64()
 
     sourceSets {
         all {
@@ -43,7 +44,6 @@ kotlin {
         commonMain.dependencies {
             implementation(project(":grpc"))
             implementation(libs.ktor.core)
-            implementation(libs.kmpcommon)
             implementation(libs.khttpclient)
             implementation(libs.datetime)
             implementation(libs.serialization.json)

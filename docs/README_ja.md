@@ -3,10 +3,11 @@
 ![badge][badge-jvm]
 ![badge][badge-ios]
 ![badge][badge-mac]
+![badge][badge-linux]
 
 **このライブラリは [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html) に対応した [mixi2](https://mixi.social/) クライアントライブラリです。**
 PlanetLink の他の SDK と異なり、mixi2 は REST/JSON ではなく gRPC (Protocol Buffers) を使用しています。
-全プラットフォーム (JVM, iOS, macOS) は [GRPC-Kotlin-Multiplatform][kmpgrpc] v1.5.0 を使用して完全に実装されています。
+全プラットフォーム (JVM, iOS, macOS, Linux) は [GRPC-Kotlin-Multiplatform][kmpgrpc] v1.5.0 を使用して完全に実装されています。
 認証 (OAuth2) は HTTP POST トークンエンドポイント用に [khttpclient] を使用しています。
 
 Proto 定義: https://github.com/mixigroup/mixi2-api
@@ -19,6 +20,7 @@ Go SDK リファレンス: https://github.com/mixigroup/mixi2-application-sdk-go
 | JVM | OK | OK | OK | OkHttp トランスポート |
 | iOS | OK | OK | OK | gRPC C-core トランスポート |
 | macOS | OK | OK | OK | gRPC C-core トランスポート |
+| Linux | OK | OK | OK | gRPC C-core トランスポート |
 | JS | - | OK | - | サーバーが grpc-web 未対応 |
 
 > JS プラットフォーム: mixi2 サーバーはブラウザ/Node.js の gRPC 呼び出しに必要な grpc-web プロトコルに対応していません。認証 (HTTP POST) は動作しますが、gRPC API 呼び出しは利用できません。

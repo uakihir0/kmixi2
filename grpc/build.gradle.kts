@@ -23,11 +23,23 @@ kotlin {
     iosSimulatorArm64()
     macosX64()
     macosArm64()
+    linuxX64()
 
     sourceSets {
         commonMain.dependencies {
             api(libs.kmpgrpc.core)
             api(libs.coroutines.core)
+        }
+    }
+
+    // Suppress warnings from KMP gRPC generated code
+    targets.configureEach {
+        compilations.configureEach {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    suppressWarnings.set(true)
+                }
+            }
         }
     }
 }
