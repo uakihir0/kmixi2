@@ -1,17 +1,17 @@
 package work.socialhub.kmixi2.internal
 
-import io.github.timortel.kmpgrpc.core.metadata.Entry
-import io.github.timortel.kmpgrpc.core.metadata.Key
-import io.github.timortel.kmpgrpc.core.metadata.Metadata
-import social.mixi.application.service.application_api.v1.Service
+import work.socialhub.kgrpc.metadata.Entry
+import work.socialhub.kgrpc.metadata.Key
+import work.socialhub.kgrpc.metadata.Metadata
 import work.socialhub.kmixi2.Mixi2Exception
+import work.socialhub.kmixi2.grpc.ApplicationServiceStub
 
 abstract class AbstractResourceImpl(
     val host: String,
     val accessToken: String,
     val authKey: String? = null,
 ) {
-    internal lateinit var stub: Service.ApplicationServiceStub
+    internal lateinit var stub: ApplicationServiceStub
 
     protected fun authMetadata(): Metadata {
         val entries = mutableListOf<Entry<*>>()

@@ -33,6 +33,7 @@ kotlin {
     macosX64()
     macosArm64()
     linuxX64()
+    mingwX64()
 
     sourceSets {
         all {
@@ -45,7 +46,6 @@ kotlin {
             implementation(project(":grpc"))
             implementation(libs.ktor.core)
             implementation(libs.khttpclient)
-            implementation(libs.datetime)
             implementation(libs.serialization.json)
         }
 

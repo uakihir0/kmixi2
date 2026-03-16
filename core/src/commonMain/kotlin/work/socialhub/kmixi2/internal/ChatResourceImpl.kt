@@ -1,10 +1,11 @@
 package work.socialhub.kmixi2.internal
 
-import social.mixi.application.service.application_api.v1.Service
+import social.mixi.application.service.application_api.v1.SendChatMessageRequest
 import work.socialhub.kmixi2.api.ChatResource
 import work.socialhub.kmixi2.api.request.chat.ChatSendChatMessageRequest
 import work.socialhub.kmixi2.api.response.Response
 import work.socialhub.kmixi2.api.response.chat.ChatSendChatMessageResponse
+import work.socialhub.kmixi2.grpc.WireMessageAdapter
 import work.socialhub.kmixi2.util.toBlocking
 
 class ChatResourceImpl(
@@ -17,14 +18,16 @@ class ChatResourceImpl(
     override suspend fun sendChatMessage(
         request: ChatSendChatMessageRequest
     ): Response<ChatSendChatMessageResponse> = proceed {
-        val grpcRequest = Service.SendChatMessageRequest(
-            room_id = request.roomId ?: "",
-            text = request.text,
-            media_id = request.mediaId,
+        val grpcRequest = WireMessageAdapter(
+            SendChatMessageRequest(
+                room_id = request.roomId ?: "",
+                text = request.text,
+                media_id = request.mediaId,
+            ), "SendChatMessageRequest"
         )
-        val grpcResponse = stub.SendChatMessage(grpcRequest, authMetadata())
+        val grpcResponse = stub.sendChatMessage(grpcRequest, authMetadata())
         Response(ChatSendChatMessageResponse().also {
-            it.message = if (grpcResponse.isMessageSet) grpcResponse.message.toEntity() else null
+            it.message = grpcResponse.wire.message?.toEntity()
         })
     }
 
