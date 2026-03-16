@@ -4,10 +4,11 @@
 ![badge][badge-ios]
 ![badge][badge-mac]
 ![badge][badge-linux]
+![badge][badge-windows]
 
 **このライブラリは [Kotlin Multiplatform](https://kotlinlang.org/docs/multiplatform.html) に対応した [mixi2](https://mixi.social/) クライアントライブラリです。**
 PlanetLink の他の SDK と異なり、mixi2 は REST/JSON ではなく gRPC (Protocol Buffers) を使用しています。
-全プラットフォーム (JVM, iOS, macOS, Linux) は [GRPC-Kotlin-Multiplatform][kmpgrpc] v1.5.0 を使用して完全に実装されています。
+全プラットフォーム (JVM, iOS, macOS, Linux, Windows) は [kgrpc] (Kotlin Multiplatform gRPC クライアント) と [Wire] (Protocol Buffer コード生成) を使用して完全に実装されています。
 認証 (OAuth2) は HTTP POST トークンエンドポイント用に [khttpclient] を使用しています。
 
 Proto 定義: https://github.com/mixigroup/mixi2-api
@@ -17,10 +18,11 @@ Go SDK リファレンス: https://github.com/mixigroup/mixi2-application-sdk-go
 
 | プラットフォーム | gRPC API | 認証 (HTTP) | ストリーミング | 備考 |
 |-----------------|----------|-------------|--------------|------|
-| JVM | OK | OK | OK | OkHttp トランスポート |
-| iOS | OK | OK | OK | gRPC C-core トランスポート |
-| macOS | OK | OK | OK | gRPC C-core トランスポート |
-| Linux | OK | OK | OK | gRPC C-core トランスポート |
+| JVM | OK | OK | OK | grpc-java + grpc-okhttp |
+| iOS | OK | OK | OK | kgrpc (Rust/Tonic FFI) |
+| macOS | OK | OK | OK | kgrpc (Rust/Tonic FFI) |
+| Linux | OK | OK | OK | kgrpc (Rust/Tonic FFI) |
+| Windows | OK | OK | OK | kgrpc (Rust/Tonic FFI) |
 | JS | - | OK | - | サーバーが grpc-web 未対応 |
 
 > JS プラットフォーム: mixi2 サーバーはブラウザ/Node.js の gRPC 呼び出しに必要な grpc-web プロトコルに対応していません。認証 (HTTP POST) は動作しますが、gRPC API 呼び出しは利用できません。
@@ -174,7 +176,6 @@ stream.open()
 ## ビルド
 
 ```bash
-./gradlew :grpc:build     # Proto スタブの生成 (全プラットフォーム)
 ./gradlew jvmJar          # 全 JVM アーティファクトのビルド
 ./gradlew :core:jvmTest   # core テストの実行
 ./gradlew :stream:jvmTest # stream テストの実行
@@ -189,7 +190,8 @@ MIT License
 [Akihiro Urushihara](https://github.com/uakihir0)
 
 [khttpclient]: https://github.com/uakihir0/khttpclient
-[kmpgrpc]: https://github.com/TimOrtel/GRPC-Kotlin-Multiplatform
+[kgrpc]: https://github.com/uakihir0/kgrpc
+[Wire]: https://github.com/square/wire
 [badge-jvm]: http://img.shields.io/badge/-jvm-DB413D.svg
 [badge-js]: http://img.shields.io/badge/-js-F8DB5D.svg
 [badge-ios]: http://img.shields.io/badge/-ios-CDCDCD.svg

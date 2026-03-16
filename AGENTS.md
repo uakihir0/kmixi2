@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository is a mixi2 API client library for Kotlin Multiplatform. mixi2 uses gRPC (Protocol Buffers) for its API, unlike the other SDKs in PlanetLink which use REST/JSON. JVM, iOS, macOS, and Linux platforms are fully supported via [GRPC-Kotlin-Multiplatform](https://github.com/TimOrtel/GRPC-Kotlin-Multiplatform) v1.5.0. Windows (mingwX64) has a native link error upstream (TODO). JS platform is limited to Auth (HTTP POST) only — the mixi2 server does not support grpc-web.
+This repository is a mixi2 API client library for Kotlin Multiplatform. mixi2 uses gRPC (Protocol Buffers) for its API, unlike the other SDKs in PlanetLink which use REST/JSON. JVM, iOS, macOS, Linux, and Windows platforms are fully supported via [kgrpc](https://github.com/uakihir0/kgrpc) (Kotlin Multiplatform gRPC client) and [Wire](https://github.com/square/wire) (Protocol Buffer code generation). JS platform is limited to Auth (HTTP POST) only — the mixi2 server does not support grpc-web.
 
 ## Key Concepts
 
@@ -52,7 +52,11 @@ Event types:
 
 - **`grpc/`**: KMP gRPC module for Protocol Buffer code generation (all platforms)
   - `src/main/proto/` - Protocol Buffer definitions
-  - Generated multiplatform Kotlin stubs via KMP gRPC plugin
+  - Wire plugin generates Kotlin data classes from proto files
+  - `src/commonMain/` - `WireMessageAdapter` (bridges Wire messages to kgrpc), `ApplicationServiceStub` and `ApplicationStreamServiceStub` (`expect`/`actual` for platform-specific gRPC calls)
+  - `src/jvmMain/` - JVM actual stubs using `io.grpc.MethodDescriptor` + Marshaller
+  - `src/nativeMain/` - Native actual stubs using path-based RPC
+  - `src/jsMain/` - JS actual stubs using path-based RPC
 - **`core/`**: gRPC API client library
   - `api/` - Resource interfaces
     - `request/` - Request objects (grouped by resource)
@@ -67,33 +71,45 @@ Event types:
 
 ## Build
 
-Proto code generation is handled by the `grpc/` module using the KMP gRPC plugin (`io.github.timortel.kmpgrpc.plugin`). The `core/` and `stream/` modules depend on `grpc/` via `project(":grpc")`.
+Proto code generation is handled by the `grpc/` module using the [Wire](https://github.com/square/wire) Gradle plugin. Wire generates Kotlin data classes from `.proto` files. The gRPC transport uses [kgrpc](https://github.com/uakihir0/kgrpc) with hand-written `expect`/`actual` stubs. The `core/` and `stream/` modules depend on `grpc/` via `project(":grpc")`.
 
 ```shell
-./gradlew :grpc:build     # Generate proto stubs (all platforms)
 ./gradlew jvmJar          # Build all JVM artifacts
-./gradlew :core:jvmTest   # Run core tests
-./gradlew :stream:jvmTest # Run stream tests
+./gradlew :core:jvmTest   # Run core tests (JVM)
+./gradlew :core:macosArm64Test  # Run core tests (macOS Native)
+./gradlew :core:linuxX64Test    # Run core tests (Linux Native)
+./gradlew :core:mingwX64Test    # Run core tests (Windows Native)
 ```
 
 ### gRPC Module Notes
 
 - Proto package `social.mixi.application.constant.v1` (renamed from `const` to avoid Kotlin reserved word).
-- Generated classes use `expect class` with platform-specific `actual` implementations.
-- Properties use snake_case (matching proto field names): `user_id`, `post_media_listList`.
-- Optional fields: non-null property + `isXxxSet: Boolean` check (e.g., `isUser_avatarSet`).
-- Oneof fields: sealed class hierarchy (e.g., `PostMedia.Content.Image`, `PostMedia.Content.Video`).
-- Metadata is passed per-call: `stub.GetUsers(request, metadata)` — no interceptor pattern.
+- Wire generates immutable data classes with `copy()` method and `ADAPTER` companion for serialization.
+- Wire `prune` config excludes gRPC service client generation (we use our own stubs via kgrpc).
+- `WireMessageAdapter<T>` bridges Wire's `com.squareup.wire.Message` to kgrpc's `work.socialhub.kgrpc.message.Message` interface.
+- `WireCompanionAdapter<T>` bridges Wire's `ProtoAdapter<T>` to kgrpc's `MessageCompanion<T>` interface.
+- Properties use snake_case (matching proto field names): `user_id`, `post_media_list`.
+- Wire does NOT suffix Kotlin reserved words — `name` stays `name`, `message` stays `message`.
+- Optional fields are nullable: `user_avatar: UserAvatar? = null`.
+- Enum fields are non-null with default values: `visibility: PostVisibility = PostVisibility.POST_VISIBILITY_UNSPECIFIED`.
+- `google.protobuf.Timestamp` is mapped to `com.squareup.wire.Instant` (typealias to `java.time.Instant` on JVM).
+- Repeated fields are `List<T>` (not arrays).
+- Metadata is passed per-call: `stub.getUsers(request, metadata)` — no interceptor pattern.
+- Stub implementations use `expect`/`actual` pattern:
+  - JVM: `io.grpc.MethodDescriptor` with Wire Marshaller → `unaryRpc()` / `serverStreamingRpc()`
+  - JS/Native: path-based RPC with `WireCompanionAdapter` for deserialization
 
 ## Testing
 
-Tests are in `commonTest` and run on JVM and Native (macOS). JS tests are stub-only (gRPC not available).
+Tests are in `commonTest` and run on JVM, Native (macOS, Linux, Windows). JS tests are stub-only (gRPC not available).
 
 Run all core tests:
 
 ```shell
 ./gradlew :core:jvmTest                    # JVM
 ./gradlew :core:macosArm64Test             # macOS Native
+./gradlew :core:linuxX64Test               # Linux Native
+./gradlew :core:mingwX64Test               # Windows Native
 ```
 
 Run specific tests:
@@ -121,27 +137,28 @@ Test infrastructure uses `expect`/`actual` for platform-specific operations:
 
 ### Transport Layer
 
-- **JVM/iOS/macOS/Linux**: KMP gRPC v1.5.0 (`io.github.timortel:kmp-grpc-core`) — JVM (OkHttp), Native (gRPC C core)
-- **Windows (mingwX64)**: TODO — native link error in KMP gRPC (undefined ntdll symbols in libkmp_grpc_native.a)
-- **JS**: gRPC API not available (server does not support grpc-web). Auth (HTTP POST) works via khttpclient
+- **JVM**: kgrpc (grpc-java + grpc-okhttp)
+- **iOS/macOS/Linux/Windows**: kgrpc (Rust/Tonic FFI via cinterop) — native libraries are included in the published Maven Central artifacts
+- **JS**: kgrpc (gRPC-Web over Ktor HttpClient) — but mixi2 server does not support grpc-web, so only Auth works
 - **Auth (OAuth2)**: Uses khttpclient (standard HTTP POST, not gRPC)
 
 ### Implementation Architecture (commonMain)
 
 - `AbstractResourceImpl` - Base class providing auth metadata builder (`Bearer` + `x-auth-key`) and `proceed {}` error wrapper
-- `ProtoMapper.kt` - Extension functions converting KMP gRPC generated classes to SDK entity classes
-- `Mixi2Impl` - Creates a shared KMP gRPC `Channel` and `ApplicationServiceStub`, injects stub into all resource implementations
+- `ProtoMapper.kt` - Extension functions converting Wire-generated classes to SDK entity classes
+- `Mixi2Impl` - Creates a shared kgrpc `Channel` and `ApplicationServiceStub`, injects stub into all resource implementations
 - `EventStreamImpl` - Creates its own channel and collects `SubscribeEvents` server-streaming `Flow`
 
 ### Steps to Add a New API
 
 1. If adding a new RPC, update the proto files in `grpc/src/main/proto/`.
-2. Run `./gradlew :grpc:build` to regenerate stubs.
-3. Add request/response models in `core/src/commonMain/kotlin/work/socialhub/kmixi2/api/request/` and `.../response/`.
-4. Add the method to the appropriate resource interface in `api/`.
-5. Add proto-to-entity mapping in `ProtoMapper.kt` (commonMain).
-6. Update internal implementations under `internal/` (commonMain).
-7. Add or update tests in `core/src/commonTest/kotlin/`.
+2. Run `./gradlew :grpc:generateCommonMainProtos` to regenerate Wire classes.
+3. Add the RPC method to `ApplicationServiceStub` (expect in commonMain, actual in jvmMain/nativeMain/jsMain).
+4. Add request/response models in `core/src/commonMain/kotlin/work/socialhub/kmixi2/api/request/` and `.../response/`.
+5. Add the method to the appropriate resource interface in `api/`.
+6. Add proto-to-entity mapping in `ProtoMapper.kt` (commonMain).
+7. Update internal implementations under `internal/` (commonMain).
+8. Add or update tests in `core/src/commonTest/kotlin/`.
 
 ### Naming Conventions
 
@@ -167,7 +184,10 @@ Models use `kotlinx.serialization` in commonMain. Enum constants mirror proto en
 | Request/response models | `core/src/commonMain/kotlin/work/socialhub/kmixi2/api/request/` and `.../response/` |
 | Entity models | `core/src/commonMain/kotlin/work/socialhub/kmixi2/entity/` |
 | Proto definitions | `grpc/src/main/proto/social/mixi/application/` |
-| gRPC build config | `grpc/build.gradle.kts` |
+| Wire build config | `grpc/build.gradle.kts` |
+| Wire ↔ kgrpc adapter | `grpc/src/commonMain/kotlin/work/socialhub/kmixi2/grpc/WireMessageAdapter.kt` |
+| Application stubs (expect) | `grpc/src/commonMain/kotlin/work/socialhub/kmixi2/grpc/ApplicationServiceStub.kt` |
+| Streaming stubs (expect) | `grpc/src/commonMain/kotlin/work/socialhub/kmixi2/grpc/ApplicationStreamServiceStub.kt` |
 | Implementations | `core/src/commonMain/kotlin/work/socialhub/kmixi2/internal/` |
 | Proto-to-entity mapper | `core/src/commonMain/kotlin/work/socialhub/kmixi2/internal/ProtoMapper.kt` |
 | Streaming API | `stream/src/commonMain/kotlin/work/socialhub/kmixi2/stream/` |
