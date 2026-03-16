@@ -1,10 +1,11 @@
 package work.socialhub.kmixi2.internal
 
-import social.mixi.application.service.application_api.v1.Service
+import social.mixi.application.service.application_api.v1.GetUsersRequest
 import work.socialhub.kmixi2.api.UsersResource
 import work.socialhub.kmixi2.api.request.users.UsersGetUsersRequest
 import work.socialhub.kmixi2.api.response.Response
 import work.socialhub.kmixi2.api.response.users.UsersGetUsersResponse
+import work.socialhub.kmixi2.grpc.WireMessageAdapter
 import work.socialhub.kmixi2.util.toBlocking
 
 class UsersResourceImpl(
@@ -17,12 +18,14 @@ class UsersResourceImpl(
     override suspend fun getUsers(
         request: UsersGetUsersRequest
     ): Response<UsersGetUsersResponse> = proceed {
-        val grpcRequest = Service.GetUsersRequest(
-            user_id_listList = request.userIdList?.toList() ?: emptyList()
+        val grpcRequest = WireMessageAdapter(
+            GetUsersRequest(
+                user_id_list = request.userIdList?.toList() ?: emptyList()
+            ), "GetUsersRequest"
         )
-        val grpcResponse = stub.GetUsers(grpcRequest, authMetadata())
+        val grpcResponse = stub.getUsers(grpcRequest, authMetadata())
         Response(UsersGetUsersResponse().also {
-            it.users = grpcResponse.usersList.map { u -> u.toEntity() }.toTypedArray()
+            it.users = grpcResponse.wire.users.map { u -> u.toEntity() }.toTypedArray()
         })
     }
 
