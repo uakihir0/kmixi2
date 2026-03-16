@@ -46,7 +46,6 @@ kotlin {
             implementation(project(":grpc"))
             implementation(libs.ktor.core)
             implementation(libs.khttpclient)
-            implementation(libs.datetime)
             implementation(libs.serialization.json)
         }
 
