@@ -1,12 +1,25 @@
 package work.socialhub.kmixi2.internal
 
-import io.github.timortel.kmpgrpc.wkt.ext.toInstant
+import com.google.protobuf.Timestamp
+import social.mixi.application.model.v1.ChatMessage as ChatMessageProto
+import social.mixi.application.model.v1.ChatMessageReceivedEvent as ChatMessageReceivedEventProto
 import social.mixi.application.model.v1.Event as EventProto
 import social.mixi.application.model.v1.Media as MediaProto
-import social.mixi.application.model.v1.Message as MessageProto
+import social.mixi.application.model.v1.MediaImage as MediaImageProto
+import social.mixi.application.model.v1.MediaStamp as MediaStampProto
+import social.mixi.application.model.v1.MediaVideo as MediaVideoProto
+import social.mixi.application.model.v1.OfficialStamp as OfficialStampProto
+import social.mixi.application.model.v1.OfficialStampSet as OfficialStampSetProto
+import social.mixi.application.model.v1.PingEvent as PingEventProto
 import social.mixi.application.model.v1.Post as PostProto
-import social.mixi.application.model.v1.Stamp as StampProto
+import social.mixi.application.model.v1.PostCreatedEvent as PostCreatedEventProto
+import social.mixi.application.model.v1.PostMask as PostMaskProto
+import social.mixi.application.model.v1.PostMedia as PostMediaProto
+import social.mixi.application.model.v1.PostMediaImage as PostMediaImageProto
+import social.mixi.application.model.v1.PostMediaVideo as PostMediaVideoProto
+import social.mixi.application.model.v1.PostStamp as PostStampProto
 import social.mixi.application.model.v1.User as UserProto
+import social.mixi.application.model.v1.UserAvatar as UserAvatarProto
 import work.socialhub.kmixi2.entity.ChatMessage
 import work.socialhub.kmixi2.entity.ChatMessageReceivedEvent
 import work.socialhub.kmixi2.entity.Event
@@ -27,206 +40,209 @@ import work.socialhub.kmixi2.entity.PostStamp
 import work.socialhub.kmixi2.entity.User
 import work.socialhub.kmixi2.entity.UserAvatar
 
-fun UserProto.User.toEntity(): User {
+private fun Timestamp.toInstantString(): String {
+    return kotlinx.datetime.Instant.fromEpochSeconds(seconds, nanos).toString()
+}
+
+fun UserProto.toEntity(): User {
     return User().also { u ->
         u.userId = user_id
         u.isDisabled = is_disabled
-        u.name = name
+        u.name = name_
         u.displayName = display_name
         u.profile = profile
-        u.userAvatar = if (isUser_avatarSet) user_avatar.toEntity() else null
-        u.visibility = visibility.name
-        u.accessLevel = access_level.name
+        u.userAvatar = user_avatar?.toEntity()
+        u.visibility = visibility?.name ?: ""
+        u.accessLevel = access_level?.name ?: ""
     }
 }
 
-fun UserProto.UserAvatar.toEntity(): UserAvatar {
+fun UserAvatarProto.toEntity(): UserAvatar {
     return UserAvatar().also { a ->
         a.largeImageUrl = large_image_url
         a.largeImageMimeType = large_image_mime_type
-        a.largeImageHeight = large_image_height.toInt()
-        a.largeImageWidth = large_image_width.toInt()
+        a.largeImageHeight = large_image_height
+        a.largeImageWidth = large_image_width
         a.smallImageUrl = small_image_url
         a.smallImageMimeType = small_image_mime_type
-        a.smallImageHeight = small_image_height.toInt()
-        a.smallImageWidth = small_image_width.toInt()
+        a.smallImageHeight = small_image_height
+        a.smallImageWidth = small_image_width
     }
 }
 
-fun PostProto.Post.toEntity(): Post {
+fun PostProto.toEntity(): Post {
     return Post().also { p ->
         p.postId = post_id
         p.isDeleted = is_deleted
         p.creatorId = creator_id
         p.text = text
-        p.createdAt = if (isCreated_atSet) created_at.toInstant().toString() else null
-        p.postMediaList = post_media_listList.map { it.toEntity() }.toTypedArray()
-        p.inReplyToPostId = if (isIn_reply_to_post_idSet) in_reply_to_post_id else null
-        p.postMask = if (isPost_maskSet) post_mask.toEntity() else null
-        p.visibility = visibility.name
-        p.accessLevel = access_level.name
-        p.stamps = stampsList.map { it.toEntity() }.toTypedArray()
-        p.readerStampId = if (isReader_stamp_idSet) reader_stamp_id else null
+        p.createdAt = created_at?.toInstantString()
+        p.postMediaList = post_media_list.map { it.toEntity() }.toTypedArray()
+        p.inReplyToPostId = in_reply_to_post_id
+        p.postMask = post_mask?.toEntity()
+        p.visibility = visibility?.name ?: ""
+        p.accessLevel = access_level?.name ?: ""
+        p.stamps = stamps.map { it.toEntity() }.toTypedArray()
+        p.readerStampId = reader_stamp_id
     }
 }
 
-fun PostProto.PostMedia.toEntity(): PostMedia {
+fun PostMediaProto.toEntity(): PostMedia {
     return PostMedia().also { m ->
-        m.mediaType = media_type.name
-        m.image = (content as? PostProto.PostMedia.Content.Image)?.image?.toEntity()
-        m.video = (content as? PostProto.PostMedia.Content.Video)?.video?.toEntity()
+        m.mediaType = media_type?.name ?: ""
+        m.image = image?.toEntity()
+        m.video = video?.toEntity()
     }
 }
 
-fun PostProto.PostMediaImage.toEntity(): PostMediaImage {
+fun PostMediaImageProto.toEntity(): PostMediaImage {
     return PostMediaImage().also { i ->
         i.largeImageUrl = large_image_url
         i.largeImageMimeType = large_image_mime_type
-        i.largeImageHeight = large_image_height.toInt()
-        i.largeImageWidth = large_image_width.toInt()
+        i.largeImageHeight = large_image_height
+        i.largeImageWidth = large_image_width
         i.smallImageUrl = small_image_url
         i.smallImageMimeType = small_image_mime_type
-        i.smallImageHeight = small_image_height.toInt()
-        i.smallImageWidth = small_image_width.toInt()
+        i.smallImageHeight = small_image_height
+        i.smallImageWidth = small_image_width
     }
 }
 
-fun PostProto.PostMediaVideo.toEntity(): PostMediaVideo {
+fun PostMediaVideoProto.toEntity(): PostMediaVideo {
     return PostMediaVideo().also { v ->
         v.videoUrl = video_url
         v.videoMimeType = video_mime_type
-        v.videoHeight = video_height.toInt()
-        v.videoWidth = video_width.toInt()
+        v.videoHeight = video_height
+        v.videoWidth = video_width
         v.previewImageUrl = preview_image_url
         v.previewImageMimeType = preview_image_mime_type
-        v.previewImageHeight = preview_image_height.toInt()
-        v.previewImageWidth = preview_image_width.toInt()
+        v.previewImageHeight = preview_image_height
+        v.previewImageWidth = preview_image_width
         v.duration = duration
     }
 }
 
-fun PostProto.PostMask.toEntity(): PostMask {
+fun PostMaskProto.toEntity(): PostMask {
     return PostMask().also { m ->
-        m.maskType = mask_type.name
+        m.maskType = mask_type?.name ?: ""
         m.caption = caption
     }
 }
 
-fun PostProto.PostStamp.toEntity(): PostStamp {
+fun PostStampProto.toEntity(): PostStamp {
     return PostStamp().also { s ->
-        s.stamp = if (isStampSet) stamp.toEntity() else null
+        s.stamp = stamp?.toEntity()
         s.count = count.toInt()
     }
 }
 
-fun MediaProto.MediaStamp.toEntity(): MediaStamp {
+fun MediaStampProto.toEntity(): MediaStamp {
     return MediaStamp().also { s ->
         s.url = url
         s.mimeType = mime_type
-        s.height = height.toInt()
-        s.width = width.toInt()
+        s.height = height
+        s.width = width
     }
 }
 
-fun MessageProto.ChatMessage.toEntity(): ChatMessage {
+fun ChatMessageProto.toEntity(): ChatMessage {
     return ChatMessage().also { c ->
         c.roomId = room_id
         c.messageId = message_id
         c.creatorId = creator_id
         c.text = text
-        c.createdAt = if (isCreated_atSet) created_at.toInstant().toString() else null
-        c.mediaList = media_listList.map { it.toEntity() }.toTypedArray()
-        c.postId = if (isPost_idSet) post_id else null
+        c.createdAt = created_at?.toInstantString()
+        c.mediaList = media_list.map { it.toEntity() }.toTypedArray()
+        c.postId = post_id
     }
 }
 
-fun MediaProto.Media.toEntity(): Media {
+fun MediaProto.toEntity(): Media {
     return Media().also { m ->
-        m.mediaType = media_type.name
-        m.image = (content as? MediaProto.Media.Content.Image)?.image?.toEntity()
-        m.video = (content as? MediaProto.Media.Content.Video)?.video?.toEntity()
+        m.mediaType = media_type?.name ?: ""
+        m.image = image?.toEntity()
+        m.video = video?.toEntity()
     }
 }
 
-fun MediaProto.MediaImage.toEntity(): MediaImage {
+fun MediaImageProto.toEntity(): MediaImage {
     return MediaImage().also { i ->
         i.largeImageUrl = large_image_url
         i.largeImageMimeType = large_image_mime_type
-        i.largeImageHeight = large_image_height.toInt()
-        i.largeImageWidth = large_image_width.toInt()
+        i.largeImageHeight = large_image_height
+        i.largeImageWidth = large_image_width
         i.smallImageUrl = small_image_url
         i.smallImageMimeType = small_image_mime_type
-        i.smallImageHeight = small_image_height.toInt()
-        i.smallImageWidth = small_image_width.toInt()
+        i.smallImageHeight = small_image_height
+        i.smallImageWidth = small_image_width
     }
 }
 
-fun MediaProto.MediaVideo.toEntity(): MediaVideo {
+fun MediaVideoProto.toEntity(): MediaVideo {
     return MediaVideo().also { v ->
         v.videoUrl = video_url
         v.videoMimeType = video_mime_type
-        v.videoHeight = video_height.toInt()
-        v.videoWidth = video_width.toInt()
+        v.videoHeight = video_height
+        v.videoWidth = video_width
         v.previewImageUrl = preview_image_url
         v.previewImageMimeType = preview_image_mime_type
-        v.previewImageHeight = preview_image_height.toInt()
-        v.previewImageWidth = preview_image_width.toInt()
+        v.previewImageHeight = preview_image_height
+        v.previewImageWidth = preview_image_width
         v.duration = duration
     }
 }
 
-fun EventProto.Event.toEntity(): Event {
+fun EventProto.toEntity(): Event {
     return Event().also { e ->
         e.eventId = event_id
-        e.eventType = event_type.name
-        when (val b = body) {
-            is EventProto.Event.Body.Ping_event -> {
+        e.eventType = event_type?.name ?: ""
+        when {
+            ping_event != null -> {
                 e.pingEvent = PingEvent()
             }
-            is EventProto.Event.Body.Post_created_event -> {
-                e.postCreatedEvent = b.post_created_event.toEntity()
+            post_created_event != null -> {
+                e.postCreatedEvent = post_created_event!!.toEntity()
             }
-            is EventProto.Event.Body.Chat_message_received_event -> {
-                e.chatMessageReceivedEvent = b.chat_message_received_event.toEntity()
+            chat_message_received_event != null -> {
+                e.chatMessageReceivedEvent = chat_message_received_event!!.toEntity()
             }
-            else -> {}
         }
     }
 }
 
-fun EventProto.PostCreatedEvent.toEntity(): PostCreatedEvent {
+fun PostCreatedEventProto.toEntity(): PostCreatedEvent {
     return PostCreatedEvent().also { e ->
-        e.eventReasonList = event_reason_listList.map { it.name }.toTypedArray()
-        e.post = if (isPostSet) post.toEntity() else null
-        e.issuer = if (isIssuerSet) issuer.toEntity() else null
+        e.eventReasonList = event_reason_list.map { it.name }.toTypedArray()
+        e.post = post?.toEntity()
+        e.issuer = issuer?.toEntity()
     }
 }
 
-fun EventProto.ChatMessageReceivedEvent.toEntity(): ChatMessageReceivedEvent {
+fun ChatMessageReceivedEventProto.toEntity(): ChatMessageReceivedEvent {
     return ChatMessageReceivedEvent().also { e ->
-        e.eventReasonList = event_reason_listList.map { it.name }.toTypedArray()
-        e.message = if (isMessageSet) message.toEntity() else null
-        e.issuer = if (isIssuerSet) issuer.toEntity() else null
+        e.eventReasonList = event_reason_list.map { it.name }.toTypedArray()
+        e.message = message_?.toEntity()
+        e.issuer = issuer?.toEntity()
     }
 }
 
-fun StampProto.OfficialStampSet.toEntity(): OfficialStampSet {
+fun OfficialStampSetProto.toEntity(): OfficialStampSet {
     return OfficialStampSet().also { s ->
         s.stampSetId = stamp_set_id
-        s.name = name
+        s.name = name_
         s.spriteUrl = sprite_url
-        s.stamps = stampsList.map { it.toEntity() }.toTypedArray()
-        s.startAt = if (isStart_atSet) start_at.toInstant().toString() else null
-        s.endAt = if (isEnd_atSet) end_at.toInstant().toString() else null
-        s.stampSetType = stamp_set_type.name
+        s.stamps = stamps.map { it.toEntity() }.toTypedArray()
+        s.startAt = start_at?.toInstantString()
+        s.endAt = end_at?.toInstantString()
+        s.stampSetType = stamp_set_type?.name ?: ""
     }
 }
 
-fun StampProto.OfficialStamp.toEntity(): OfficialStamp {
+fun OfficialStampProto.toEntity(): OfficialStamp {
     return OfficialStamp().also { s ->
         s.stampId = stamp_id
-        s.index = index.toInt()
-        s.searchTags = search_tagsList.toTypedArray()
+        s.index = index
+        s.searchTags = search_tags.toTypedArray()
         s.url = url
     }
 }
