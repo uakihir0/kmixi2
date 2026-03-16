@@ -109,7 +109,7 @@ class PostsResourceImpl(
         )
         val grpcResponse = stub.getPostMediaStatus(grpcRequest, authMetadata())
         Response(PostsGetPostMediaStatusResponse().also {
-            it.status = grpcResponse.wire.status?.name ?: ""
+            it.status = grpcResponse.wire.status.name
         })
     }
 

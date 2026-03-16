@@ -9,6 +9,10 @@ wire {
     sourcePath {
         srcDir("src/main/proto")
     }
+    prune(
+        "social.mixi.application.service.application_api.v1.ApplicationService",
+        "social.mixi.application.service.application_stream.v1.ApplicationService",
+    )
     kotlin {
     }
 }

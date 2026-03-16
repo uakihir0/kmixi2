@@ -1,6 +1,6 @@
 package work.socialhub.kmixi2.internal
 
-import com.google.protobuf.Timestamp
+import com.squareup.wire.Instant
 import social.mixi.application.model.v1.ChatMessage as ChatMessageProto
 import social.mixi.application.model.v1.ChatMessageReceivedEvent as ChatMessageReceivedEventProto
 import social.mixi.application.model.v1.Event as EventProto
@@ -40,20 +40,20 @@ import work.socialhub.kmixi2.entity.PostStamp
 import work.socialhub.kmixi2.entity.User
 import work.socialhub.kmixi2.entity.UserAvatar
 
-private fun Timestamp.toInstantString(): String {
-    return kotlinx.datetime.Instant.fromEpochSeconds(seconds, nanos).toString()
+private fun Instant.toInstantString(): String {
+    return toString()
 }
 
 fun UserProto.toEntity(): User {
     return User().also { u ->
         u.userId = user_id
         u.isDisabled = is_disabled
-        u.name = name_
+        u.name = name
         u.displayName = display_name
         u.profile = profile
         u.userAvatar = user_avatar?.toEntity()
-        u.visibility = visibility?.name ?: ""
-        u.accessLevel = access_level?.name ?: ""
+        u.visibility = visibility.name
+        u.accessLevel = access_level.name
     }
 }
 
@@ -80,8 +80,8 @@ fun PostProto.toEntity(): Post {
         p.postMediaList = post_media_list.map { it.toEntity() }.toTypedArray()
         p.inReplyToPostId = in_reply_to_post_id
         p.postMask = post_mask?.toEntity()
-        p.visibility = visibility?.name ?: ""
-        p.accessLevel = access_level?.name ?: ""
+        p.visibility = visibility.name
+        p.accessLevel = access_level.name
         p.stamps = stamps.map { it.toEntity() }.toTypedArray()
         p.readerStampId = reader_stamp_id
     }
@@ -89,7 +89,7 @@ fun PostProto.toEntity(): Post {
 
 fun PostMediaProto.toEntity(): PostMedia {
     return PostMedia().also { m ->
-        m.mediaType = media_type?.name ?: ""
+        m.mediaType = media_type.name
         m.image = image?.toEntity()
         m.video = video?.toEntity()
     }
@@ -124,7 +124,7 @@ fun PostMediaVideoProto.toEntity(): PostMediaVideo {
 
 fun PostMaskProto.toEntity(): PostMask {
     return PostMask().also { m ->
-        m.maskType = mask_type?.name ?: ""
+        m.maskType = mask_type.name
         m.caption = caption
     }
 }
@@ -159,7 +159,7 @@ fun ChatMessageProto.toEntity(): ChatMessage {
 
 fun MediaProto.toEntity(): Media {
     return Media().also { m ->
-        m.mediaType = media_type?.name ?: ""
+        m.mediaType = media_type.name
         m.image = image?.toEntity()
         m.video = video?.toEntity()
     }
@@ -195,7 +195,7 @@ fun MediaVideoProto.toEntity(): MediaVideo {
 fun EventProto.toEntity(): Event {
     return Event().also { e ->
         e.eventId = event_id
-        e.eventType = event_type?.name ?: ""
+        e.eventType = event_type.name
         when {
             ping_event != null -> {
                 e.pingEvent = PingEvent()
@@ -221,7 +221,7 @@ fun PostCreatedEventProto.toEntity(): PostCreatedEvent {
 fun ChatMessageReceivedEventProto.toEntity(): ChatMessageReceivedEvent {
     return ChatMessageReceivedEvent().also { e ->
         e.eventReasonList = event_reason_list.map { it.name }.toTypedArray()
-        e.message = message_?.toEntity()
+        e.message = message?.toEntity()
         e.issuer = issuer?.toEntity()
     }
 }
@@ -229,12 +229,12 @@ fun ChatMessageReceivedEventProto.toEntity(): ChatMessageReceivedEvent {
 fun OfficialStampSetProto.toEntity(): OfficialStampSet {
     return OfficialStampSet().also { s ->
         s.stampSetId = stamp_set_id
-        s.name = name_
+        s.name = name
         s.spriteUrl = sprite_url
         s.stamps = stamps.map { it.toEntity() }.toTypedArray()
         s.startAt = start_at?.toInstantString()
         s.endAt = end_at?.toInstantString()
-        s.stampSetType = stamp_set_type?.name ?: ""
+        s.stampSetType = stamp_set_type.name
     }
 }
 

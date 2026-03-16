@@ -27,7 +27,7 @@ class ChatResourceImpl(
         )
         val grpcResponse = stub.sendChatMessage(grpcRequest, authMetadata())
         Response(ChatSendChatMessageResponse().also {
-            it.message = grpcResponse.wire.message_?.toEntity()
+            it.message = grpcResponse.wire.message?.toEntity()
         })
     }
 
