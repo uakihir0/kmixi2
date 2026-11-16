@@ -1,10 +1,10 @@
 [versions]
-coroutines = "1.10.2"
-kotest = "6.1.3"
-kotlin = "2.3.10"
+coroutines = "1.11.0"
+kotest = "6.2.5"
+kotlin = "2.4.21"
 nexus-publish = "2.0.0"
-maven-publish = "0.36.0"
-dokka = "2.1.0"
+maven-publish = "0.37.0"
+dokka = "2.3.0"
 
 # gRPC
 kgrpc = "0.1.1"
@@ -12,11 +12,11 @@ wire = "5.3.0"
 
 [libraries]
 khttpclient = "work.socialhub:khttpclient:0.0.9-SNAPSHOT"
-ktor-core = "io.ktor:ktor-client-core:3.4.0"
+ktor-core = "io.ktor:ktor-client-core:3.6.1"
 datetime = "org.jetbrains.kotlinx:kotlinx-datetime:0.7.1-0.6.x-compat"
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
-serialization-json = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.10.0"
+serialization-json = "org.jetbrains.kotlinx:kotlinx-serialization-json:1.12.0"
 kotest-junit5 = { module = "io.kotest:kotest-runner-junit5-jvm", version.ref = "kotest" }
 kotest-assertions = { module = "io.kotest:kotest-assertions-core-jvm", version.ref = "kotest" }
 
@@ -28,7 +28,7 @@ wire-runtime = { module = "com.squareup.wire:wire-runtime", version.ref = "wire"
 nexus-publish = { module = "io.github.gradle-nexus.publish-plugin:io.github.gradle-nexus.publish-plugin.gradle.plugin", version.ref = "nexus-publish" }
 maven-publish = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "maven-publish" }
 dokka = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
-slf4j-simple = "org.slf4j:slf4j-simple:2.0.17"
+slf4j-simple = "org.slf4j:slf4j-simple:2.0.20"
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
@@ -38,5 +38,5 @@ kotlin-cocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref =
 maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "maven-publish" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 swiftpackage = "io.github.luca992.multiplatform-swiftpackage:2.3.0"
-git-versioning = "me.qoomon.git-versioning:6.4.4"
+git-versioning = "me.qoomon.git-versioning:7.0.0"
 wire = { id = "com.squareup.wire", version.ref = "wire" }
