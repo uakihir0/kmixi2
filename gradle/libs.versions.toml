@@ -11,7 +11,7 @@ kgrpc = "0.1.1"
 wire = "5.3.0"
 
 [libraries]
-khttpclient = "work.socialhub:khttpclient:0.0.9-SNAPSHOT"
+khttpclient = "work.socialhub:khttpclient:0.0.9"
 ktor-core = "io.ktor:ktor-client-core:3.6.1"
 datetime = "org.jetbrains.kotlinx:kotlinx-datetime:0.7.1-0.6.x-compat"
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
